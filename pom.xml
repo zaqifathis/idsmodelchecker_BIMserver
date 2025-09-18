@@ -35,6 +35,12 @@
                 <directory>plugin</directory>
                 <filtering>true</filtering>
             </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*.xsd</include>
+                </includes>
+            </resource>
         </resources>
     </build>
     <repositories>
