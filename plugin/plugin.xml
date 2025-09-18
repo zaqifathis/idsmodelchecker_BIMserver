@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PluginDescriptor>
+    <JavaPlugin>
+        <interfaceClass>org.bimserver.plugins.services.ServicePlugin</interfaceClass>
+        <implementationClass>de.openfabtwin.bimserver.checkingservice.IdsModelChecking</implementationClass>
+        <description>IDS Model Checking Service</description>
+        <name>IdsModel-Checking</name>
+    </JavaPlugin>
+</PluginDescriptor>

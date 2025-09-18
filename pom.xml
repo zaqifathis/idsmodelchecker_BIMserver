@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.openfabtwin</groupId>
+    <artifactId>IdsModelPlugins</artifactId>
+    <version>1.0.0</version>
+    <name>IdsModelCheckingService</name>
+    <description>IDS Model Checker</description>
+    <organization>
+        <name>OpenFabTwin</name>
+    </organization>
+    <licenses>
+        <license>
+            <name>GNU Lesser General Public License</name>
+            <url>https://www.gnu.de/documents/lgpl-3.0.de.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Zaqi Fathis</name>
+            <email>zaqi.fathis@htw-dresden.de</email>
+        </developer>
+    </developers>
+    <properties>
+        <maven.compiler.release>11</maven.compiler.release>
+        <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <timestamp>${maven.build.timestamp}</timestamp>
+    </properties>
+    <build>
+        <resources>
+            <resource>
+                <targetPath>plugin</targetPath>
+                <directory>plugin</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
+        </repository>
+    </repositories>
+    <dependencies>
+        <!-- Opensource BIMserver -->
+        <dependency>
+            <groupId>org.opensourcebim</groupId>
+            <artifactId>pluginbase</artifactId>
+            <version>1.6.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- XML parser -->
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>4.0.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>4.0.5</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Various utility libraries -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.17</version>
+        </dependency>
+
+    </dependencies>
+</project>
