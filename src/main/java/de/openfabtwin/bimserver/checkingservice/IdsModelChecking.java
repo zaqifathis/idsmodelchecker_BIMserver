@@ -6,6 +6,8 @@ import org.bimserver.plugins.SchemaName;
 import org.bimserver.plugins.services.AbstractAddExtendedDataService;
 import org.bimserver.plugins.services.BimServerClientInterface;
 
+import java.io.InputStream;
+
 public class IdsModelChecking extends AbstractAddExtendedDataService {
 
     public IdsModelChecking() {
@@ -34,7 +36,23 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
 
     @Override
     public void newRevision(RunningService runningService, BimServerClientInterface bimServerClientInterface, long poid, long roid, String userToken, long soid, SObjectType settings) throws Exception {
+
         // ids validation
+        final String URL_IDS = runningService.getPluginConfiguration().getString("IdsFile");
+
+        if (URL_IDS == null || URL_IDS.isEmpty()) {
+            String report = "No IDS file URL provided.";
+            addExtendedData(report.getBytes(), "result.txt", "IdsCheckerReport_Test", "text/plain", bimServerClientInterface, roid);
+            return;
+        }
+        else if (!URL_IDS.toLowerCase().endsWith(".ids")) {
+            String report = "The provided IDS file URL does not point to a valid XML or IDS file.";
+            addExtendedData(report.getBytes(), "result.txt", "IdsCheckerReport_Test", "text/plain", bimServerClientInterface, roid);
+            return;
+        }
+
+        byte[] ids = new Ids(URL_IDS).fetchAndValidate();
+
 
         // ifc model
 

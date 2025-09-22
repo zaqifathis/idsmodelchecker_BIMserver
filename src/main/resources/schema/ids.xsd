@@ -71,7 +71,7 @@
 			<xs:element name="baseName" type="ids:idsValue">
 				<xs:annotation>
 					<xs:documentation>
-						the moniker 'baseName' is chosen to clarify that the data needs to reference the property name as stored in the IFC file, 
+						the moniker 'baseName' is chosen to clarify that the data needs to reference the property name as stored in the IFC file,
 						which might differ from the multiple language-dependent presentations (e.g. 'FireRating' vs. 'Fire rating').
 					</xs:documentation>
 				</xs:annotation>
@@ -79,7 +79,7 @@
 			<xs:element name="value" type="ids:idsValue" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation>
-						Depending on the dataType attribute, values are expressed in the default unit documented at 
+						Depending on the dataType attribute, values are expressed in the default unit documented at
 						https://github.com/buildingSMART/IDS/blob/master/Documentation/UserManual/units.md, and unit conversion might be required.
 					</xs:documentation>
 				</xs:annotation>
@@ -97,7 +97,7 @@
 			<xs:element name="value" type="ids:idsValue" minOccurs="0">
 				<xs:annotation>
 					<xs:documentation>
-						Depending on the IFC type of the attribute, values are expressed in the default unit documented at 
+						Depending on the IFC type of the attribute, values are expressed in the default unit documented at
 						https://github.com/buildingSMART/IDS/blob/master/Documentation/UserManual/units.md, and unit conversion might be required.
 					</xs:documentation>
 				</xs:annotation>
@@ -118,7 +118,7 @@
 				<xs:complexType>
 					<xs:complexContent>
 						<xs:extension base="ids:entityType">
-							<!-- 
+							<!--
 								Contrary to other requirements facet extensions, cardinality is not available in the entityType facet when used for requirements.
 								Its cardinality state is always considered to be "required".
 								Constraining the acceptable values is achieved by specifying criteria via with xs:Enumeration and xs:Pattern, rather than the negative form.
@@ -256,11 +256,11 @@
 	</xs:complexType>
 	<xs:simpleType name="relations">
 		<xs:restriction base="xs:string">
-			<xs:enumeration value="IFCRELAGGREGATES"/>  
-			<xs:enumeration value="IFCRELASSIGNSTOGROUP"/> 
-			<xs:enumeration value="IFCRELCONTAINEDINSPATIALSTRUCTURE"/> 
-			<xs:enumeration value="IFCRELNESTS"/> 
-			<xs:enumeration value="IFCRELVOIDSELEMENT IFCRELFILLSELEMENT"/> 
+			<xs:enumeration value="IFCRELAGGREGATES"/>
+			<xs:enumeration value="IFCRELASSIGNSTOGROUP"/>
+			<xs:enumeration value="IFCRELCONTAINEDINSPATIALSTRUCTURE"/>
+			<xs:enumeration value="IFCRELNESTS"/>
+			<xs:enumeration value="IFCRELVOIDSELEMENT IFCRELFILLSELEMENT"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="upperCaseName">
@@ -281,5 +281,5 @@
 			<xs:enumeration value="optional"/>
 		</xs:restriction>
 	</xs:simpleType>
-	
+
 </xs:schema>
