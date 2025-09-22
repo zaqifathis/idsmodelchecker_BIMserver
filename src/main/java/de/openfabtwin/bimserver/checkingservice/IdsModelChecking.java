@@ -5,10 +5,13 @@ import org.bimserver.models.store.*;
 import org.bimserver.plugins.SchemaName;
 import org.bimserver.plugins.services.AbstractAddExtendedDataService;
 import org.bimserver.plugins.services.BimServerClientInterface;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
+import java.util.Arrays;
 
 public class IdsModelChecking extends AbstractAddExtendedDataService {
+    Logger LOGGER = LoggerFactory.getLogger(IdsModelChecking.class);
 
     public IdsModelChecking() {
         super(SchemaName.UNSTRUCTURED_UTF8_TEXT_1_0.name());
@@ -52,8 +55,14 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
         }
 
         byte[] ids = new Ids(URL_IDS).fetchAndValidate();
+        if (ids == null) {
+            String report = "The provided IDS file is not valid.";
+            addExtendedData(report.getBytes(), "result.txt", "IdsCheckerReport_Test", "text/plain", bimServerClientInterface, roid);
+            return;
+        }
 
-
+        LOGGER.info(ids.length + " bytes read from IDS file.");
+        LOGGER.info(Arrays.toString(ids));
         // ifc model
 
         // ids model checking

@@ -26,6 +26,7 @@ import javax.xml.validation.Validator;
 public class Ids {
     Logger LOGGER = LoggerFactory.getLogger(Ids.class);
     private final String url;
+    private byte[] idsContent = null;
 
     Ids(String url) {
         this.url = url;
@@ -38,14 +39,13 @@ public class Ids {
             Validator validator = schema.newValidator();
             try {
                 validator.validate(new StreamSource(ids));
+                idsContent = fetchFile().readAllBytes();
                 LOGGER.info("IDS file is valid.");
-                return ids.readAllBytes();
             } catch (SAXException e) {
                 LOGGER.error("IDS file is NOT valid: {}", e.getMessage());
             }
         }
-
-        return null;
+        return idsContent;
     }
 
     private Schema getSchema() {
