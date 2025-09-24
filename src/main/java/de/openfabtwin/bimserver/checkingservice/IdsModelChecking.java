@@ -1,5 +1,6 @@
 package de.openfabtwin.bimserver.checkingservice;
 
+import de.openfabtwin.bimserver.checkingservice.model.Ids;
 import org.bimserver.interfaces.objects.SObjectType;
 import org.bimserver.models.store.*;
 import org.bimserver.plugins.SchemaName;
@@ -7,8 +8,6 @@ import org.bimserver.plugins.services.AbstractAddExtendedDataService;
 import org.bimserver.plugins.services.BimServerClientInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
 
 public class IdsModelChecking extends AbstractAddExtendedDataService {
     Logger LOGGER = LoggerFactory.getLogger(IdsModelChecking.class);
@@ -43,32 +42,21 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
         // ids validation
         final String URL_IDS = runningService.getPluginConfiguration().getString("IdsFile");
 
-        if (URL_IDS == null || URL_IDS.isEmpty()) {
-            String report = "No IDS file URL provided.";
-            addExtendedData(report.getBytes(), "result.txt", "IdsCheckerReport_Test", "text/plain", bimServerClientInterface, roid);
-            return;
-        }
-        else if (!URL_IDS.toLowerCase().endsWith(".ids")) {
-            String report = "The provided IDS file URL does not point to a valid XML or IDS file.";
+        if (URL_IDS == null || URL_IDS.isEmpty() || !URL_IDS.toLowerCase().endsWith(".ids")) {
+            String report = "Missing or invalid IDS URL.";
             addExtendedData(report.getBytes(), "result.txt", "IdsCheckerReport_Test", "text/plain", bimServerClientInterface, roid);
             return;
         }
 
-        byte[] ids = new Ids(URL_IDS).fetchAndValidate();
-        if (ids == null) {
-            String report = "The provided IDS file is not valid.";
-            addExtendedData(report.getBytes(), "result.txt", "IdsCheckerReport_Test", "text/plain", bimServerClientInterface, roid);
-            return;
-        }
+        Ids ids = IdsMapper.read(URL_IDS);
+        LOGGER.info("applicability count: " + ids.getSpecifications().get(0).getApplicability().size() + " " + ids.getSpecifications().get(0).getApplicability().get(0));
 
-        LOGGER.info(ids.length + " bytes read from IDS file.");
-        LOGGER.info(Arrays.toString(ids));
         // ifc model
 
         // ids model checking
 
         // report generation
-        String report = "IDS model checking is not yet implemented.";
+        String report = "IDS title is: " + ids.getInfo().get("title");
         addExtendedData(report.getBytes(), "result.txt", "IDS Model Checker Report", "text/plain", bimServerClientInterface, roid);
     }
 

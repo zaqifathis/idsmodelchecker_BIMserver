@@ -9,6 +9,7 @@
     <organization>
         <name>OpenFabTwin</name>
     </organization>
+
     <licenses>
         <license>
             <name>GNU Lesser General Public License</name>
@@ -16,18 +17,22 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
     <developers>
         <developer>
             <name>Zaqi Fathis</name>
             <email>zaqi.fathis@htw-dresden.de</email>
         </developer>
     </developers>
+
     <properties>
-        <maven.compiler.release>11</maven.compiler.release>
+        <maven.compiler.release>17</maven.compiler.release>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <timestamp>${maven.build.timestamp}</timestamp>
+        <ids.generated.package>de.openfabtwin.bimserver.checkingservice.dto</ids.generated.package>
     </properties>
+
     <build>
         <resources>
             <resource>
@@ -39,10 +44,53 @@
                 <directory>src/main/resources</directory>
                 <includes>
                     <include>**/*.xsd</include>
+<!--                    <include>**/*.xjb</include>-->
+                    <include>**/*.xml</include>
+                    <include>**/*.dtd</include>
                 </includes>
             </resource>
         </resources>
+
+<!--        <plugins>-->
+<!--            <plugin>-->
+<!--                <groupId>org.jvnet.jaxb2.maven2</groupId>-->
+<!--                <artifactId>maven-jaxb2-plugin</artifactId>-->
+<!--                <version>0.15.3</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <goals><goal>generate</goal></goals>-->
+<!--                        <configuration>-->
+<!--                            <schemaIncludes>-->
+<!--                                <include>ids.xsd</include>-->
+<!--                            </schemaIncludes>-->
+<!--                            <schemaDirectory>${project.basedir}/src/main/resources/schema/</schemaDirectory>-->
+<!--                            <generatePackage>de.openfabtwin.bimserver.checkingservice.dto.generated</generatePackage>-->
+<!--                            <catalog>${project.basedir}/src/main/resources/schema/catalog.xml</catalog>-->
+<!--                            <accessExternalSchema>file</accessExternalSchema>-->
+<!--                            <accessExternalDTD>file</accessExternalDTD>-->
+<!--                            <verbose>true</verbose>-->
+<!--                            <args>-->
+<!--                                <arg>-XautoNameResolution</arg>-->
+<!--                            </args>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--                <dependencies>-->
+<!--                    <dependency>-->
+<!--                        <groupId>xml-resolver</groupId>-->
+<!--                        <artifactId>xml-resolver</artifactId>-->
+<!--                        <version>1.2</version>-->
+<!--                    </dependency>-->
+<!--                    <dependency>-->
+<!--                        <groupId>org.jvnet.jaxb2_commons</groupId>-->
+<!--                        <artifactId>jaxb2-basics</artifactId>-->
+<!--                        <version>1.11.1</version>-->
+<!--                    </dependency>-->
+<!--                </dependencies>-->
+<!--            </plugin>-->
+<!--        </plugins>-->
     </build>
+
     <repositories>
         <repository>
             <id>central</id>
@@ -50,27 +98,22 @@
         </repository>
     </repositories>
     <dependencies>
-        <!-- Opensource BIMserver -->
         <dependency>
             <groupId>org.opensourcebim</groupId>
             <artifactId>pluginbase</artifactId>
             <version>1.6.0-SNAPSHOT</version>
         </dependency>
-
-        <!-- XML parser -->
         <dependency>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>4.0.4</version>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
-            <version>4.0.5</version>
-            <scope>runtime</scope>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>2.3.9</version>
         </dependency>
-
-        <!-- Various utility libraries -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
