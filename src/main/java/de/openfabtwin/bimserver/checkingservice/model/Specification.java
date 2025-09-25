@@ -1,11 +1,18 @@
 package de.openfabtwin.bimserver.checkingservice.model;
 
+import de.openfabtwin.bimserver.checkingservice.IdsModelChecking;
 import org.bimserver.emf.IdEObject;
+import org.bimserver.interfaces.objects.SProject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Specification {
+    Logger LOGGER = LoggerFactory.getLogger(Specification.class);
+
+
     String name = "Unnamed";
     List<IfcVersion> ifcVersion = new ArrayList<>();
     String identifier, description, instructions;
@@ -38,16 +45,36 @@ public class Specification {
     public void setInstructions(String instructions) { this.instructions = instructions; }
     public void setMinOccurs(String minOccurs) { this.minOccurs = minOccurs; }
     public void setMaxOccurs(String maxOccurs) { this.maxOccurs = maxOccurs; }
+
+    public void reset_status(){
+        this.status = null;
+        this.applicable_entities.clear();
+        this.passed_entities.clear();
+        this.failed_entities.clear();
+        this.is_ifc_version_supported = null;
+    }
+
+    public void check_ifc_version(SProject project) {
+        String projectSchema = project.getSchema().toUpperCase();
+        if (projectSchema.equals("IFC2X3TC1")) projectSchema = "IFC2X3";
+        if (ifcVersion.contains(IfcVersion.fromString(projectSchema))) {
+            this.is_ifc_version_supported = Boolean.TRUE;
+            this.status = Boolean.TRUE;
+        } else {
+            this.is_ifc_version_supported = Boolean.FALSE;
+            this.status = Boolean.FALSE;
+        }
+    }
 }
 
 
 interface Facet {}
-record EntityFacet(String name, String predefinedType, String instructions) implements Facet {}
-record PropertyFacet(String pset, String baseName, ValueOrRestriction value, String dataType, String uri, String cardinality, String instructions) implements Facet {}
-record AttributeFacet(String name, ValueOrRestriction value, String cardinality, String instructions) implements Facet {}
-record ClassificationFacet(String system, ValueOrRestriction value, String uri, String cardinality, String instructions) implements Facet {}
-record MaterialFacet(ValueOrRestriction value, String uri, String cardinality, String instructions) implements Facet {}
-record PartOfFacet(String name, String predefinedType, String relation, String cardinality, String instructions) implements Facet {}
+record Entity(String name, String predefinedType, String instructions) implements Facet {}
+record PartOf(String name, String predefinedType, String relation, String cardinality, String instructions) implements Facet {}
+record Classification(String system, ValueOrRestriction value, String uri, String cardinality, String instructions) implements Facet {}
+record Attribute(String name, ValueOrRestriction value, String cardinality, String instructions) implements Facet {}
+record Property(String pset, String baseName, ValueOrRestriction value, String dataType, String uri, String cardinality, String instructions) implements Facet {}
+record Material(ValueOrRestriction value, String uri, String cardinality, String instructions) implements Facet {}
 // Value that can be a simple string or a restriction
 sealed interface ValueOrRestriction permits SimpleValue, RestrictionValue {}
 record SimpleValue(String value) implements ValueOrRestriction {}

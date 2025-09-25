@@ -1,7 +1,9 @@
 package de.openfabtwin.bimserver.checkingservice;
 
 import de.openfabtwin.bimserver.checkingservice.model.Ids;
+import org.bimserver.emf.IfcModelInterface;
 import org.bimserver.interfaces.objects.SObjectType;
+import org.bimserver.interfaces.objects.SProject;
 import org.bimserver.models.store.*;
 import org.bimserver.plugins.SchemaName;
 import org.bimserver.plugins.services.AbstractAddExtendedDataService;
@@ -49,17 +51,20 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
         }
 
         Ids ids = IdsMapper.read(URL_IDS);
-        LOGGER.info("applicability count: " + ids.getSpecifications().get(0).getApplicability().size() + " " + ids.getSpecifications().get(0).getApplicability().get(0));
 
         // ifc model
+        SProject project = bimServerClientInterface.getServiceInterface().getProjectByPoid(poid);
+//        IfcModelInterface model = bimServerClientInterface.getModel(projectByPoid, roid, true, false);
+
+        Reporter reporter = new Reporter(ids);
+        StringBuilder report = reporter.generateReport();
 
         // ids model checking
+        String val = ids.validate(report, project);
 
-        // report generation
-        String report = "IDS title is: " + ids.getInfo().get("title");
-        addExtendedData(report.getBytes(), "result.txt", "IDS Model Checker Report", "text/plain", bimServerClientInterface, roid);
+
+        addExtendedData(val.getBytes(), "result.txt", "OFT: IDS Model Checker Report", "text/plain", bimServerClientInterface, roid);
     }
-
 
 
     @Override
