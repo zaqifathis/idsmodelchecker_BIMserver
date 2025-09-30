@@ -5,15 +5,15 @@ import de.openfabtwin.bimserver.checkingservice.model.Specification;
 import java.util.List;
 
 public class ResultSpecification {
-    private String name;
-    private String description;
-    private String identifier;
-    private String instructions;
-    private Boolean status;
-    private Boolean is_ifc_version;
-    private int total_applicable;
-    private int total_applicable_passed;
-    private int total_applicable_failed;
+    private final String name;
+    private final String description;
+    private final String identifier;
+    private final String instructions;
+    private final Boolean status;
+    private final Boolean is_ifc_version;
+    private final int total_applicable;
+    private final int total_applicable_passed;
+    private final int total_applicable_failed;
     private int total_checks;
     private int total_checks_passed;
     private int total_checks_failed;

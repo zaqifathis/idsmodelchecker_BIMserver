@@ -1,6 +1,6 @@
 package de.openfabtwin.bimserver.checkingservice.model;
 
-import de.openfabtwin.bimserver.checkingservice.IdsModelChecking;
+import de.openfabtwin.bimserver.checkingservice.model.facet.Facet;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.interfaces.objects.SProject;
 import org.slf4j.Logger;
@@ -42,6 +42,7 @@ public class Specification {
     public List<IdEObject> getFailed_entities() { return failed_entities; }
     public Boolean getStatus() { return status; }
     public Boolean getIs_ifc_version_supported() { return is_ifc_version_supported; }
+    public String getCardinality() { return cardinality; }
 
     public void setName(String name) {
         this.name = (name == null || name.isBlank()) ? "Unnamed" : name;
@@ -51,6 +52,7 @@ public class Specification {
     public void setInstructions(String instructions) { this.instructions = instructions; }
     public void setMinOccurs(String minOccurs) { this.minOccurs = minOccurs; }
     public void setMaxOccurs(String maxOccurs) { this.maxOccurs = maxOccurs; }
+    public void setCardinality(String cardinality) { this.cardinality = cardinality; }
 
     public void reset_status(){
         this.status = null;
@@ -72,15 +74,6 @@ public class Specification {
         }
     }
 }
-
-
-interface Facet {}
-
-// Value that can be a simple string or a restriction
-sealed interface ValueOrRestriction permits SimpleValue, RestrictionValue {}
-record SimpleValue(String value) implements ValueOrRestriction {}
-record RestrictionValue(List<String> enums, List<String> patterns) implements ValueOrRestriction {}
-
 
 enum IfcVersion {
     IFC2X3,

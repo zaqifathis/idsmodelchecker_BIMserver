@@ -1,7 +1,6 @@
-package de.openfabtwin.bimserver.checkingservice;
+package de.openfabtwin.bimserver.checkingservice.model;
 
 import de.openfabtwin.bimserver.checkingservice.dto.IdsXml;
-import de.openfabtwin.bimserver.checkingservice.model.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;

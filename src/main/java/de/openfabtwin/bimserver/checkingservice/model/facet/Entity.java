@@ -1,4 +1,4 @@
-package de.openfabtwin.bimserver.checkingservice.model;
+package de.openfabtwin.bimserver.checkingservice.model.facet;
 
 
 import org.bimserver.emf.IfcModelInterface;
@@ -21,6 +21,7 @@ public class Entity implements Facet {
     public String getInstructions() { return instructions; }
 
     public List<IfcModelInterface> filter (IfcModelInterface elements) {
+
         return null;
     }
 

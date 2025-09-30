@@ -1,6 +1,7 @@
 package de.openfabtwin.bimserver.checkingservice.model;
 
 import de.openfabtwin.bimserver.checkingservice.dto.IdsXml;
+import de.openfabtwin.bimserver.checkingservice.model.facet.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,11 +46,27 @@ public class Mappers {
                     s.getRequirements().add(mapEntity(e));
                 }
             }
-            for (IdsXml.PartOfXml po : rx.partOf) s.getRequirements().add(mapPartOf(po));
-            for (IdsXml.ClassificationXml cx : rx.classification) s.getRequirements().add(mapClassification(cx));
-            for (IdsXml.AttributeXml at : rx.attribute) s.getRequirements().add(mapAttribute(at));
-            for (IdsXml.PropertyXml px : rx.property) s.getRequirements().add(mapProperty(px));
-            for (IdsXml.MaterialXml mx : rx.material) s.getRequirements().add(mapMaterial(mx));
+
+            for (IdsXml.PartOfXml po : rx.partOf) {
+                s.getRequirements().add(mapPartOf(po));
+                s.setCardinality(po.cardinality);
+            }
+            for (IdsXml.ClassificationXml cx : rx.classification) {
+                s.getRequirements().add(mapClassification(cx));
+                s.setCardinality(cx.cardinality);
+            }
+            for (IdsXml.AttributeXml at : rx.attribute) {
+                s.getRequirements().add(mapAttribute(at));
+                s.setCardinality(at.cardinality);
+            }
+            for (IdsXml.PropertyXml px : rx.property) {
+                s.getRequirements().add(mapProperty(px));
+                s.setCardinality(px.cardinality);
+            }
+            for (IdsXml.MaterialXml mx : rx.material) {
+                s.getRequirements().add(mapMaterial(mx));
+                s.setCardinality(mx.cardinality);
+            }
 
             if (rx.description != null && (s.getDescription() == null || s.getDescription().isBlank())) {
                 s.setDescription(rx.description);
