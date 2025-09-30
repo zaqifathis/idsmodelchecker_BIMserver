@@ -13,19 +13,20 @@ public class Specification {
     Logger LOGGER = LoggerFactory.getLogger(Specification.class);
 
 
-    String name = "Unnamed";
-    List<IfcVersion> ifcVersion = new ArrayList<>();
-    String identifier, description, instructions;
-    String minOccurs;
-    String maxOccurs;
-    List<Facet> applicability = new ArrayList<>();
-    List<Facet> requirements  = new ArrayList<>();
+    private String name = "Unnamed";
+    private List<IfcVersion> ifcVersion = new ArrayList<>();
+    private String identifier, description, instructions;
+    private String minOccurs;
+    private String maxOccurs;
+    private List<Facet> applicability = new ArrayList<>();
+    private List<Facet> requirements  = new ArrayList<>();
 
-    List<IdEObject> applicable_entities = new ArrayList<>();
-    List<IdEObject> passed_entities   = new ArrayList<>();
-    List<IdEObject> failed_entities   = new ArrayList<>();
-    Boolean status = null; // null=not checked, true=passed, false=failed
-    Boolean is_ifc_version_supported = null; // null=not checked, true=supported, false=not supported
+    private List<IdEObject> applicable_entities = new ArrayList<>();
+    private List<IdEObject> passed_entities   = new ArrayList<>();
+    private List<IdEObject> failed_entities   = new ArrayList<>();
+    private Boolean status = null; // null=not checked, true=passed, false=failed
+    private Boolean is_ifc_version_supported = null; // null=not checked, true=supported, false=not supported
+    private String cardinality;
 
     public String getName() { return name; }
     public List<IfcVersion> getIfcVersion() { return ifcVersion; }
@@ -36,6 +37,11 @@ public class Specification {
     public String getMaxOccurs() { return maxOccurs; }
     public List<Facet> getApplicability() { return applicability; }
     public List<Facet> getRequirements() { return requirements; }
+    public List<IdEObject> getApplicable_entities() { return applicable_entities; }
+    public List<IdEObject> getPassed_entities() { return passed_entities; }
+    public List<IdEObject> getFailed_entities() { return failed_entities; }
+    public Boolean getStatus() { return status; }
+    public Boolean getIs_ifc_version_supported() { return is_ifc_version_supported; }
 
     public void setName(String name) {
         this.name = (name == null || name.isBlank()) ? "Unnamed" : name;
@@ -69,12 +75,7 @@ public class Specification {
 
 
 interface Facet {}
-record Entity(String name, String predefinedType, String instructions) implements Facet {}
-record PartOf(String name, String predefinedType, String relation, String cardinality, String instructions) implements Facet {}
-record Classification(String system, ValueOrRestriction value, String uri, String cardinality, String instructions) implements Facet {}
-record Attribute(String name, ValueOrRestriction value, String cardinality, String instructions) implements Facet {}
-record Property(String pset, String baseName, ValueOrRestriction value, String dataType, String uri, String cardinality, String instructions) implements Facet {}
-record Material(ValueOrRestriction value, String uri, String cardinality, String instructions) implements Facet {}
+
 // Value that can be a simple string or a restriction
 sealed interface ValueOrRestriction permits SimpleValue, RestrictionValue {}
 record SimpleValue(String value) implements ValueOrRestriction {}
@@ -95,3 +96,25 @@ enum IfcVersion {
         };
     }
 }
+
+enum Cardinality {
+    REQUIRED("required"),
+    OPTIONAL("optional"),
+    PROHIBITED("prohibited"),;
+
+    private final String text;
+
+    Cardinality(String text) {
+        this.text = text;
+    }
+
+    public static Cardinality fromString(String s) {
+        return switch (s.trim().toLowerCase()) {
+            case "required" -> REQUIRED;
+            case "optional" -> OPTIONAL;
+            case "prohibited" -> PROHIBITED;
+            default -> throw new IllegalArgumentException("Unknown cardinality: " + s);
+        };
+    }
+}
+

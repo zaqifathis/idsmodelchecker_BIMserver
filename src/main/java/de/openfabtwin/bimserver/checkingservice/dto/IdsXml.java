@@ -53,7 +53,8 @@ public class IdsXml {
     @XmlType(propOrder = {"applicability", "requirements"})
     public static class SpecificationXml {
         private ApplicabilityXml applicability;     // required
-        private RequirementsXml requirements;       // optional
+        private RequirementsXml
+                requirements;       // optional
 
         @XmlAttribute(name = "name", required = true)
         public String name;

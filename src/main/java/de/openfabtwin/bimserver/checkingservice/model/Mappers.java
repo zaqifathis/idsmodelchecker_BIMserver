@@ -59,40 +59,41 @@ public class Mappers {
         return s;
     }
 
-    //TODO: doublecheck!
+    //TODO: doublecheck
 
-    public static EntityFacet mapEntity(IdsXml.EntityXml e) {
-        return new EntityFacet(
+    public static Entity mapEntity(IdsXml.EntityXml e) {
+        return new Entity(
                 up(text(e.name)),
                 up(text(e.predefinedType)),
                 e.instructions
+
         );
     }
 
-    public static PartOfFacet mapPartOf(IdsXml.PartOfXml po) {
+    public static PartOf mapPartOf(IdsXml.PartOfXml po) {
         String name = (po.entity != null) ? text(po.entity.name) : null;
         String pdef = (po.entity != null) ? text(po.entity.predefinedType) : null;
-        return new PartOfFacet(name, pdef, po.relation, po.cardinality, po.instructions);
+        return new PartOf(name, pdef, po.relation, po.cardinality, po.instructions);
     }
 
-    public static ClassificationFacet mapClassification(IdsXml.ClassificationXml c) {
-        return new ClassificationFacet(
+    public static Classification mapClassification(IdsXml.ClassificationXml c) {
+        return new Classification(
                 text(c.system),
                 value(c.value),
                 c.uri, defCard(c.cardinality), c.instructions
         );
     }
 
-    public static AttributeFacet mapAttribute(IdsXml.AttributeXml a) {
-        return new AttributeFacet(
+    public static Attribute mapAttribute(IdsXml.AttributeXml a) {
+        return new Attribute(
                 text(a.name),
                 value(a.value),
                 defCard(a.cardinality), a.instructions
         );
     }
 
-    public static PropertyFacet mapProperty(IdsXml.PropertyXml p) {
-        return new PropertyFacet(
+    public static Property mapProperty(IdsXml.PropertyXml p) {
+        return new Property(
                 text(p.propertySet),
                 text(p.baseName),
                 value(p.value),
@@ -100,8 +101,8 @@ public class Mappers {
         );
     }
 
-    public static MaterialFacet mapMaterial(IdsXml.MaterialXml m) {
-        return new MaterialFacet(
+    public static Material mapMaterial(IdsXml.MaterialXml m) {
+        return new Material(
                 value(m.value),
                 m.uri, defCard(m.cardinality), m.instructions
         );

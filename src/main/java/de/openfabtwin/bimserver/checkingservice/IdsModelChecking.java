@@ -1,6 +1,8 @@
 package de.openfabtwin.bimserver.checkingservice;
 
 import de.openfabtwin.bimserver.checkingservice.model.Ids;
+import de.openfabtwin.bimserver.checkingservice.report.Reporter;
+import de.openfabtwin.bimserver.checkingservice.report.Results;
 import org.bimserver.emf.IfcModelInterface;
 import org.bimserver.interfaces.objects.SObjectType;
 import org.bimserver.interfaces.objects.SProject;
@@ -51,19 +53,19 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
         }
 
         Ids ids = IdsMapper.read(URL_IDS);
+        LOGGER.info("Using IDS: " + ids.getSpecifications().size() + "spec size, " + ids.getSpecifications().get(0).getApplicability().size() + " applicability facets, " +
+                ids.getSpecifications().get(0).getRequirements().size() + " requirement facets.");
 
         // ifc model
         SProject project = bimServerClientInterface.getServiceInterface().getProjectByPoid(poid);
-//        IfcModelInterface model = bimServerClientInterface.getModel(projectByPoid, roid, true, false);
+        IfcModelInterface model = bimServerClientInterface.getModel(project, roid, true, false);
 
-        Reporter reporter = new Reporter(ids);
-        StringBuilder report = reporter.generateReport();
-
-        // ids model checking
-        String val = ids.validate(report, project);
+        Results results = ids.validate(project, model);
+        Reporter reporter = new Reporter(results);
+        String txtReport = reporter.txtReport();
 
 
-        addExtendedData(val.getBytes(), "result.txt", "OFT: IDS Model Checker Report", "text/plain", bimServerClientInterface, roid);
+        addExtendedData(txtReport.getBytes(), "result.txt", "OFT: IDS Model Checker Report", "text/plain", bimServerClientInterface, roid);
     }
 
 
