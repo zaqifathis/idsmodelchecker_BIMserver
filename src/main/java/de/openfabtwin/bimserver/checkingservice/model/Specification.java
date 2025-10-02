@@ -23,9 +23,9 @@ public class Specification {
     private final List<Facet> applicability = new ArrayList<>();
     private final List<Facet> requirements  = new ArrayList<>();
 
-    private final List<IdEObject> applicable_entities = new ArrayList<>();
-    private final List<IdEObject> passed_entities   = new ArrayList<>();
-    private final List<IdEObject> failed_entities   = new ArrayList<>();
+    private List<IdEObject> applicable_entities = new ArrayList<>();
+    private List<IdEObject> passed_entities   = new ArrayList<>();
+    private List<IdEObject> failed_entities   = new ArrayList<>();
     private Boolean status = null; // null=not checked, true=passed, false=failed
     private Boolean is_ifc_version_supported = null; // null=not checked, true=supported, false=not supported
     private Cardinality cardinality;
@@ -55,6 +55,7 @@ public class Specification {
     public void setMinOccurs(String minOccurs) { this.minOccurs = minOccurs; }
     public void setMaxOccurs(String maxOccurs) { this.maxOccurs = maxOccurs; }
     public void setCardinality(String cardinality) { this.cardinality = cardinalityFromString(cardinality); }
+    public void setApplicable_entities(List<IdEObject> applicable_entities) { this.applicable_entities = applicable_entities; }
 
     public void reset_status(){
         this.status = null;
@@ -99,6 +100,12 @@ public class Specification {
             case "prohibited" -> PROHIBITED;
             default -> throw new IllegalArgumentException("Unknown cardinality: " + s);
         };
+    }
+
+    public void cardinalityFromMinMax() {
+        switch(this.minOccurs) {
+
+        }
     }
 
 

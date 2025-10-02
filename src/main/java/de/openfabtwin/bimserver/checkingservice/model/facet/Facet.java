@@ -1,6 +1,7 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
 
 import de.openfabtwin.bimserver.checkingservice.model.Specification.Cardinality;
+import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public abstract class Facet {
     }
 
     public abstract FacetType getType();
-    public abstract List<IfcModelInterface> filter(IfcModelInterface elements);
+    public abstract List<IdEObject> filter(IfcModelInterface elements, String minOccurs, String maxOccurs);
 }
 
 

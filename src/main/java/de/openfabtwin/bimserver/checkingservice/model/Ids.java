@@ -32,7 +32,7 @@ public class Ids {
                 if (!spec.getApplicability().isEmpty()) {
                     List<Facet> facets = spec.getApplicability();
                     for (Facet facet: facets) {
-
+                        spec.setApplicable_entities(facet.filter(model, spec.getMinOccurs(), spec.getMaxOccurs()));
                     }
                 }
 

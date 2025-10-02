@@ -1,6 +1,7 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
 
 import de.openfabtwin.bimserver.checkingservice.model.ValueOrRestriction;
+import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 
 import java.util.List;
@@ -15,7 +16,7 @@ public class Classification extends Facet {
     public FacetType getType(){return FacetType.CLASSIFICATION; }
 
     @Override
-    public List<IfcModelInterface> filter(IfcModelInterface elements) {
+    public List<IdEObject> filter(IfcModelInterface elements, String minOccurs, String maxOccurs) {
         return null;
     }
 }

@@ -29,9 +29,11 @@ public class Entity extends Facet {
     public String getProhibitedTemplate() {return this.prohibitedTemplate; }
 
     @Override
-    public List<IfcModelInterface> filter(IfcModelInterface elements) {
-        for (IdEObject element : elements) {
+    public List<IdEObject> filter(IfcModelInterface elements, String minOccurs, String maxOccurs) {
+        if (this.predefinedType == null) {
+            for (IdEObject element : elements) {
 
+            }
         }
         return null;
     }

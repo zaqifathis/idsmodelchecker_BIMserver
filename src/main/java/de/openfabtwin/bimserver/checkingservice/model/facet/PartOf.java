@@ -1,5 +1,6 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
 
+import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 
 import java.util.List;
@@ -12,7 +13,7 @@ public class PartOf extends Facet {
     public FacetType getType(){return FacetType.PARTOF; }
 
     @Override
-    public List<IfcModelInterface> filter(IfcModelInterface elements) {
+    public List<IdEObject> filter(IfcModelInterface elements, String minOccurs, String maxOccurs) {
         return null;
     }
 }

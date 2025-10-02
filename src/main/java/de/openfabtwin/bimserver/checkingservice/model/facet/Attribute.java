@@ -2,6 +2,7 @@ package de.openfabtwin.bimserver.checkingservice.model.facet;
 
 import de.openfabtwin.bimserver.checkingservice.model.Specification;
 import de.openfabtwin.bimserver.checkingservice.model.ValueOrRestriction;
+import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 
 import java.util.List;
@@ -25,7 +26,7 @@ public class Attribute extends Facet {
     public FacetType getType() {return FacetType.ATTRIBUTE; }
 
     @Override
-    public List<IfcModelInterface> filter(IfcModelInterface elements) {
+    public List<IdEObject> filter(IfcModelInterface elements, String minOccurs, String maxOccurs) {
         return null;
     }
 
