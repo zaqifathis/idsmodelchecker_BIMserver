@@ -4,6 +4,7 @@ import de.openfabtwin.bimserver.checkingservice.model.Ids;
 import de.openfabtwin.bimserver.checkingservice.model.IdsMapper;
 import de.openfabtwin.bimserver.checkingservice.report.Reporter;
 import de.openfabtwin.bimserver.checkingservice.report.Results;
+import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 import org.bimserver.interfaces.objects.SObjectType;
 import org.bimserver.interfaces.objects.SProject;
@@ -58,6 +59,10 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
 
         SProject project = bimServerClientInterface.getServiceInterface().getProjectByPoid(poid);
         IfcModelInterface elements = bimServerClientInterface.getModel(project, roid, true, false);
+        LOGGER.info("Model has " + elements.size() + " elements.");
+        for (IdEObject element : elements) {
+            LOGGER.debug("Element: " + element.getClass().getSimpleName() + " - " + element.getOid() + " - " + element.toString());
+        }
 
         Results results = ids.validate(project, elements);
         Reporter reporter = new Reporter(results);

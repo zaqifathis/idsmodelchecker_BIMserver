@@ -27,11 +27,12 @@ public class Ids {
             spec.reset_status();
             spec.check_ifc_version(project);
             if(spec.getIs_ifc_version_supported() == Boolean.TRUE) {
+
                 // applicability
                 if (!spec.getApplicability().isEmpty()) {
                     List<Facet> facets = spec.getApplicability();
                     for (Facet facet: facets) {
-                        LOGGER.info("check-facet is: " + facet.toString());
+
                     }
                 }
 

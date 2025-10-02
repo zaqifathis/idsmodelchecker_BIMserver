@@ -16,7 +16,7 @@ public class Specification {
     Logger LOGGER = LoggerFactory.getLogger(Specification.class);
 
     private String name = "Unnamed";
-    private List<IfcVersion> ifcVersion = new ArrayList<>();
+    private final List<IfcVersion> ifcVersion = new ArrayList<>();
     private String identifier, description, instructions;
     private String minOccurs;
     private String maxOccurs;
@@ -76,12 +76,7 @@ public class Specification {
         }
     }
 
-    public enum IfcVersion {
-        IFC2X3,
-        IFC4,
-        IFC4X3_ADD2;
-
-    }
+    public enum IfcVersion {IFC2X3, IFC4, IFC4X3_ADD2 }
 
     public static IfcVersion ifcVersionFromString(String s) {
         return switch (s.trim().toUpperCase()) {
@@ -92,13 +87,12 @@ public class Specification {
         };
     }
 
-    public enum Cardinality {
-        REQUIRED,
-        OPTIONAL,
-        PROHIBITED,;
-    }
+    public enum Cardinality {REQUIRED, OPTIONAL, PROHIBITED}
 
     public static Cardinality cardinalityFromString(String s) {
+        if (s == null || s.isBlank()) {
+            return REQUIRED;
+        }
         return switch (s.trim().toLowerCase()) {
             case "required" -> REQUIRED;
             case "optional" -> OPTIONAL;
@@ -106,6 +100,7 @@ public class Specification {
             default -> throw new IllegalArgumentException("Unknown cardinality: " + s);
         };
     }
+
 
 }
 
