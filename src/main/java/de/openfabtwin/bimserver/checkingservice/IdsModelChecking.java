@@ -44,7 +44,6 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
     @Override
     public void newRevision(RunningService runningService, BimServerClientInterface bimServerClientInterface, long poid, long roid, String userToken, long soid, SObjectType settings) throws Exception {
 
-        // ids validation
         final String URL_IDS = runningService.getPluginConfiguration().getString("IdsFile");
 
         if (URL_IDS == null || URL_IDS.isEmpty() || !URL_IDS.toLowerCase().endsWith(".ids")) {
@@ -57,18 +56,15 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
         LOGGER.info("Using IDS: " + ids.getSpecifications().size() + "spec size, " + ids.getSpecifications().get(0).getApplicability().size() + " applicability facets, " +
                 ids.getSpecifications().get(0).getRequirements().size() + " requirement facets.");
 
-        // ifc model
         SProject project = bimServerClientInterface.getServiceInterface().getProjectByPoid(poid);
-        IfcModelInterface model = bimServerClientInterface.getModel(project, roid, true, false);
+        IfcModelInterface elements = bimServerClientInterface.getModel(project, roid, true, false);
 
-        Results results = ids.validate(project, model);
+        Results results = ids.validate(project, elements);
         Reporter reporter = new Reporter(results);
         String txtReport = reporter.txtReport();
 
-
         addExtendedData(txtReport.getBytes(), "result.txt", "OFT: IDS Model Checker Report", "text/plain", bimServerClientInterface, roid);
     }
-
 
     @Override
     public ProgressType getProgressType() {

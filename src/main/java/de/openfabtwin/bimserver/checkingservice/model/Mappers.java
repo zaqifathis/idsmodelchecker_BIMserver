@@ -15,7 +15,8 @@ public class Mappers {
         if (spXml.name != null && !spXml.name.isBlank()) s.setName(spXml.name);
         if (spXml.ifcVersion != null) {
             for (String v : spXml.ifcVersion) {
-                s.getIfcVersion().add(IfcVersion.fromString(v));
+                s.getIfcVersion().add(Specification.ifcVersionFromString(v));
+
             }
         }
 
@@ -75,8 +76,6 @@ public class Mappers {
 
         return s;
     }
-
-    //TODO: doublecheck
 
     public static Entity mapEntity(IdsXml.EntityXml e) {
         return new Entity(

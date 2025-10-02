@@ -1,6 +1,7 @@
 package de.openfabtwin.bimserver.checkingservice.model;
 
 import de.openfabtwin.bimserver.checkingservice.IdsModelChecking;
+import de.openfabtwin.bimserver.checkingservice.model.facet.Facet;
 import de.openfabtwin.bimserver.checkingservice.report.ResultSpecification;
 import de.openfabtwin.bimserver.checkingservice.report.Results;
 import org.bimserver.emf.IfcModelInterface;
@@ -22,12 +23,19 @@ public class Ids {
     public Results validate(SProject project, IfcModelInterface model) {
         final Results results = new Results(this);
 
-        //check IFC version
         for (Specification spec : specifications) {
             spec.reset_status();
             spec.check_ifc_version(project);
             if(spec.getIs_ifc_version_supported() == Boolean.TRUE) {
-                // TODO: check applicability and requirements
+                // applicability
+                if (!spec.getApplicability().isEmpty()) {
+                    List<Facet> facets = spec.getApplicability();
+                    for (Facet facet: facets) {
+                        LOGGER.info("check-facet is: " + facet.toString());
+                    }
+                }
+
+                // requirement
 
 
             }

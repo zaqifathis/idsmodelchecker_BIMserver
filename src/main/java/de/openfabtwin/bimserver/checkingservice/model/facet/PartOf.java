@@ -1,3 +1,18 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
 
-public record PartOf(String name, String predefinedType, String relation, String cardinality, String instructions) implements Facet {}
+import org.bimserver.emf.IfcModelInterface;
+
+import java.util.List;
+
+public class PartOf extends Facet {
+
+    public PartOf(String name, String predefinedType, String relation, String cardinality, String instructions){}
+
+    @Override
+    public FacetType getType(){return FacetType.PARTOF; }
+
+    @Override
+    public List<IfcModelInterface> filter(IfcModelInterface elements) {
+        return null;
+    }
+}

@@ -1,5 +1,21 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
 
 import de.openfabtwin.bimserver.checkingservice.model.ValueOrRestriction;
+import org.bimserver.emf.IfcModelInterface;
 
-public record Classification(String system, ValueOrRestriction value, String uri, String cardinality, String instructions) implements Facet {}
+import java.util.List;
+
+public class Classification extends Facet {
+
+    public Classification(String system, ValueOrRestriction value, String uri, String cardinality, String instructions){
+
+    }
+
+    @Override
+    public FacetType getType(){return FacetType.CLASSIFICATION; }
+
+    @Override
+    public List<IfcModelInterface> filter(IfcModelInterface elements) {
+        return null;
+    }
+}

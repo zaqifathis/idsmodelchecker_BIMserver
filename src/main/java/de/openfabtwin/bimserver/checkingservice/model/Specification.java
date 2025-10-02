@@ -9,24 +9,26 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+import static de.openfabtwin.bimserver.checkingservice.model.Specification.Cardinality.*;
+import static de.openfabtwin.bimserver.checkingservice.model.Specification.IfcVersion.*;
+
 public class Specification {
     Logger LOGGER = LoggerFactory.getLogger(Specification.class);
-
 
     private String name = "Unnamed";
     private List<IfcVersion> ifcVersion = new ArrayList<>();
     private String identifier, description, instructions;
     private String minOccurs;
     private String maxOccurs;
-    private List<Facet> applicability = new ArrayList<>();
-    private List<Facet> requirements  = new ArrayList<>();
+    private final List<Facet> applicability = new ArrayList<>();
+    private final List<Facet> requirements  = new ArrayList<>();
 
-    private List<IdEObject> applicable_entities = new ArrayList<>();
-    private List<IdEObject> passed_entities   = new ArrayList<>();
-    private List<IdEObject> failed_entities   = new ArrayList<>();
+    private final List<IdEObject> applicable_entities = new ArrayList<>();
+    private final List<IdEObject> passed_entities   = new ArrayList<>();
+    private final List<IdEObject> failed_entities   = new ArrayList<>();
     private Boolean status = null; // null=not checked, true=passed, false=failed
     private Boolean is_ifc_version_supported = null; // null=not checked, true=supported, false=not supported
-    private String cardinality;
+    private Cardinality cardinality;
 
     public String getName() { return name; }
     public List<IfcVersion> getIfcVersion() { return ifcVersion; }
@@ -42,7 +44,7 @@ public class Specification {
     public List<IdEObject> getFailed_entities() { return failed_entities; }
     public Boolean getStatus() { return status; }
     public Boolean getIs_ifc_version_supported() { return is_ifc_version_supported; }
-    public String getCardinality() { return cardinality; }
+    public Cardinality getCardinality() { return cardinality; }
 
     public void setName(String name) {
         this.name = (name == null || name.isBlank()) ? "Unnamed" : name;
@@ -52,7 +54,7 @@ public class Specification {
     public void setInstructions(String instructions) { this.instructions = instructions; }
     public void setMinOccurs(String minOccurs) { this.minOccurs = minOccurs; }
     public void setMaxOccurs(String maxOccurs) { this.maxOccurs = maxOccurs; }
-    public void setCardinality(String cardinality) { this.cardinality = cardinality; }
+    public void setCardinality(String cardinality) { this.cardinality = cardinalityFromString(cardinality); }
 
     public void reset_status(){
         this.status = null;
@@ -65,7 +67,7 @@ public class Specification {
     public void check_ifc_version(SProject project) {
         String projectSchema = project.getSchema().toUpperCase();
         if (projectSchema.equals("IFC2X3TC1")) projectSchema = "IFC2X3";
-        if (ifcVersion.contains(IfcVersion.fromString(projectSchema))) {
+        if (ifcVersion.contains(ifcVersionFromString(projectSchema))) {
             this.is_ifc_version_supported = Boolean.TRUE;
             this.status = Boolean.TRUE;
         } else {
@@ -73,14 +75,15 @@ public class Specification {
             this.status = Boolean.FALSE;
         }
     }
-}
 
-enum IfcVersion {
-    IFC2X3,
-    IFC4,
-    IFC4X3_ADD2;
+    public enum IfcVersion {
+        IFC2X3,
+        IFC4,
+        IFC4X3_ADD2;
 
-    public static IfcVersion fromString(String s) {
+    }
+
+    public static IfcVersion ifcVersionFromString(String s) {
         return switch (s.trim().toUpperCase()) {
             case "IFC2X3" -> IFC2X3;
             case "IFC4" -> IFC4;
@@ -88,20 +91,14 @@ enum IfcVersion {
             default -> throw new IllegalArgumentException("Unknown IFC version: " + s);
         };
     }
-}
 
-enum Cardinality {
-    REQUIRED("required"),
-    OPTIONAL("optional"),
-    PROHIBITED("prohibited"),;
-
-    private final String text;
-
-    Cardinality(String text) {
-        this.text = text;
+    public enum Cardinality {
+        REQUIRED,
+        OPTIONAL,
+        PROHIBITED,;
     }
 
-    public static Cardinality fromString(String s) {
+    public static Cardinality cardinalityFromString(String s) {
         return switch (s.trim().toLowerCase()) {
             case "required" -> REQUIRED;
             case "optional" -> OPTIONAL;
@@ -109,5 +106,8 @@ enum Cardinality {
             default -> throw new IllegalArgumentException("Unknown cardinality: " + s);
         };
     }
+
 }
+
+
 
