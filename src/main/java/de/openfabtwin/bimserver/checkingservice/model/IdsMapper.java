@@ -1,7 +1,6 @@
-package de.openfabtwin.bimserver.checkingservice;
+package de.openfabtwin.bimserver.checkingservice.model;
 
 import de.openfabtwin.bimserver.checkingservice.dto.IdsXml;
-import de.openfabtwin.bimserver.checkingservice.model.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
@@ -26,6 +25,7 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Paths;
 import java.time.Duration;
 
 import static de.openfabtwin.bimserver.checkingservice.model.Mappers.*;
@@ -34,6 +34,7 @@ import static de.openfabtwin.bimserver.checkingservice.model.Mappers.*;
 public class IdsMapper {
     static Logger LOGGER = LoggerFactory.getLogger(IdsMapper.class);
     private static final JAXBContext IDS_CTX = initCtx();
+    private static String idsFile;
 
     private static JAXBContext initCtx() {
         try { return JAXBContext.newInstance(IdsXml.class); }
@@ -53,12 +54,13 @@ public class IdsMapper {
     static Ids toDomain(IdsXml idsXml) {
         Ids ids = new Ids();
         if (idsXml.getInfo() != null) {
+            ids.getInfo().put("filename",    idsFile); // add filename to info
             ids.getInfo().put("title", idsXml.getInfo().getTitle());
             ids.getInfo().put("description", idsXml.getInfo().getDescription());
             ids.getInfo().put("copyright",   idsXml.getInfo().getCopyright());
             ids.getInfo().put("version",     idsXml.getInfo().getVersion());
             ids.getInfo().put("author",      idsXml.getInfo().getAuthor());
-            ids.getInfo().put("date",        idsXml.getInfo().getDate());      // String or LocalDate per your DTO
+            ids.getInfo().put("date",        idsXml.getInfo().getDate());
             ids.getInfo().put("purpose",     idsXml.getInfo().getPurpose());
             ids.getInfo().put("milestone",   idsXml.getInfo().getMilestone());
         }
@@ -176,11 +178,15 @@ public class IdsMapper {
     }
 
     private static byte[] fetchURL(String url) throws IOException, InterruptedException {
+        URI uri = URI.create(url);
+        String path = uri.getPath();
+        idsFile = Paths.get(path).getFileName().toString();
+
         HttpClient client = HttpClient.newBuilder()
-                .connectTimeout(java.time.Duration.ofSeconds(10))
+                .connectTimeout(Duration.ofSeconds(10))
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .build();
-        HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+        HttpRequest request = HttpRequest.newBuilder(uri)
                 .timeout(Duration.ofSeconds(20))
                 .GET().build();
 
@@ -189,6 +195,9 @@ public class IdsMapper {
             throw new RuntimeException("Failed to fetch IDS: HTTP " + response.statusCode());
         return response.body();
     }
+
+
+
 }
 
 

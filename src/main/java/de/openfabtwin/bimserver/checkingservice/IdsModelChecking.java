@@ -1,7 +1,13 @@
 package de.openfabtwin.bimserver.checkingservice;
 
 import de.openfabtwin.bimserver.checkingservice.model.Ids;
+import de.openfabtwin.bimserver.checkingservice.model.IdsMapper;
+import de.openfabtwin.bimserver.checkingservice.report.Reporter;
+import de.openfabtwin.bimserver.checkingservice.report.Results;
+import org.bimserver.emf.IdEObject;
+import org.bimserver.emf.IfcModelInterface;
 import org.bimserver.interfaces.objects.SObjectType;
+import org.bimserver.interfaces.objects.SProject;
 import org.bimserver.models.store.*;
 import org.bimserver.plugins.SchemaName;
 import org.bimserver.plugins.services.AbstractAddExtendedDataService;
@@ -39,7 +45,6 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
     @Override
     public void newRevision(RunningService runningService, BimServerClientInterface bimServerClientInterface, long poid, long roid, String userToken, long soid, SObjectType settings) throws Exception {
 
-        // ids validation
         final String URL_IDS = runningService.getPluginConfiguration().getString("IdsFile");
 
         if (URL_IDS == null || URL_IDS.isEmpty() || !URL_IDS.toLowerCase().endsWith(".ids")) {
@@ -49,18 +54,22 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
         }
 
         Ids ids = IdsMapper.read(URL_IDS);
-        LOGGER.info("applicability count: " + ids.getSpecifications().get(0).getApplicability().size() + " " + ids.getSpecifications().get(0).getApplicability().get(0));
+        LOGGER.info("Using IDS: " + ids.getSpecifications().size() + "spec size, " + ids.getSpecifications().get(0).getApplicability().size() + " applicability facets, " +
+                ids.getSpecifications().get(0).getRequirements().size() + " requirement facets.");
 
-        // ifc model
+        SProject project = bimServerClientInterface.getServiceInterface().getProjectByPoid(poid);
+        IfcModelInterface elements = bimServerClientInterface.getModel(project, roid, true, false);
+        LOGGER.info("Model has " + elements.size() + " elements.");
+        for (IdEObject element : elements) {
+            LOGGER.debug("Element: " + element.getClass().getSimpleName() + " - " + element.getOid() + " - " + element.toString());
+        }
 
-        // ids model checking
+        Results results = ids.validate(project, elements);
+        Reporter reporter = new Reporter(results);
+        String txtReport = reporter.txtReport();
 
-        // report generation
-        String report = "IDS title is: " + ids.getInfo().get("title");
-        addExtendedData(report.getBytes(), "result.txt", "IDS Model Checker Report", "text/plain", bimServerClientInterface, roid);
+        addExtendedData(txtReport.getBytes(), "result.txt", "OFT: IDS Model Checker Report", "text/plain", bimServerClientInterface, roid);
     }
-
-
 
     @Override
     public ProgressType getProgressType() {

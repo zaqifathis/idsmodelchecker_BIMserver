@@ -1,6 +1,7 @@
 package de.openfabtwin.bimserver.checkingservice.model;
 
 import de.openfabtwin.bimserver.checkingservice.dto.IdsXml;
+import de.openfabtwin.bimserver.checkingservice.model.facet.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,8 @@ public class Mappers {
         if (spXml.name != null && !spXml.name.isBlank()) s.setName(spXml.name);
         if (spXml.ifcVersion != null) {
             for (String v : spXml.ifcVersion) {
-                s.getIfcVersion().add(IfcVersion.fromString(v));
+                s.getIfcVersion().add(Specification.ifcVersionFromString(v));
+
             }
         }
 
@@ -45,11 +47,27 @@ public class Mappers {
                     s.getRequirements().add(mapEntity(e));
                 }
             }
-            for (IdsXml.PartOfXml po : rx.partOf) s.getRequirements().add(mapPartOf(po));
-            for (IdsXml.ClassificationXml cx : rx.classification) s.getRequirements().add(mapClassification(cx));
-            for (IdsXml.AttributeXml at : rx.attribute) s.getRequirements().add(mapAttribute(at));
-            for (IdsXml.PropertyXml px : rx.property) s.getRequirements().add(mapProperty(px));
-            for (IdsXml.MaterialXml mx : rx.material) s.getRequirements().add(mapMaterial(mx));
+
+            for (IdsXml.PartOfXml po : rx.partOf) {
+                s.getRequirements().add(mapPartOf(po));
+                s.setCardinality(po.cardinality);
+            }
+            for (IdsXml.ClassificationXml cx : rx.classification) {
+                s.getRequirements().add(mapClassification(cx));
+                s.setCardinality(cx.cardinality);
+            }
+            for (IdsXml.AttributeXml at : rx.attribute) {
+                s.getRequirements().add(mapAttribute(at));
+                s.setCardinality(at.cardinality);
+            }
+            for (IdsXml.PropertyXml px : rx.property) {
+                s.getRequirements().add(mapProperty(px));
+                s.setCardinality(px.cardinality);
+            }
+            for (IdsXml.MaterialXml mx : rx.material) {
+                s.getRequirements().add(mapMaterial(mx));
+                s.setCardinality(mx.cardinality);
+            }
 
             if (rx.description != null && (s.getDescription() == null || s.getDescription().isBlank())) {
                 s.setDescription(rx.description);
@@ -59,40 +77,39 @@ public class Mappers {
         return s;
     }
 
-    //TODO: doublecheck!
-
-    public static EntityFacet mapEntity(IdsXml.EntityXml e) {
-        return new EntityFacet(
+    public static Entity mapEntity(IdsXml.EntityXml e) {
+        return new Entity(
                 up(text(e.name)),
                 up(text(e.predefinedType)),
                 e.instructions
+
         );
     }
 
-    public static PartOfFacet mapPartOf(IdsXml.PartOfXml po) {
+    public static PartOf mapPartOf(IdsXml.PartOfXml po) {
         String name = (po.entity != null) ? text(po.entity.name) : null;
         String pdef = (po.entity != null) ? text(po.entity.predefinedType) : null;
-        return new PartOfFacet(name, pdef, po.relation, po.cardinality, po.instructions);
+        return new PartOf(name, pdef, po.relation, po.cardinality, po.instructions);
     }
 
-    public static ClassificationFacet mapClassification(IdsXml.ClassificationXml c) {
-        return new ClassificationFacet(
+    public static Classification mapClassification(IdsXml.ClassificationXml c) {
+        return new Classification(
                 text(c.system),
                 value(c.value),
                 c.uri, defCard(c.cardinality), c.instructions
         );
     }
 
-    public static AttributeFacet mapAttribute(IdsXml.AttributeXml a) {
-        return new AttributeFacet(
+    public static Attribute mapAttribute(IdsXml.AttributeXml a) {
+        return new Attribute(
                 text(a.name),
                 value(a.value),
                 defCard(a.cardinality), a.instructions
         );
     }
 
-    public static PropertyFacet mapProperty(IdsXml.PropertyXml p) {
-        return new PropertyFacet(
+    public static Property mapProperty(IdsXml.PropertyXml p) {
+        return new Property(
                 text(p.propertySet),
                 text(p.baseName),
                 value(p.value),
@@ -100,8 +117,8 @@ public class Mappers {
         );
     }
 
-    public static MaterialFacet mapMaterial(IdsXml.MaterialXml m) {
-        return new MaterialFacet(
+    public static Material mapMaterial(IdsXml.MaterialXml m) {
+        return new Material(
                 value(m.value),
                 m.uri, defCard(m.cardinality), m.instructions
         );

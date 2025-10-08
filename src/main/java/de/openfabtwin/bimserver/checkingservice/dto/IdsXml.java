@@ -53,7 +53,8 @@ public class IdsXml {
     @XmlType(propOrder = {"applicability", "requirements"})
     public static class SpecificationXml {
         private ApplicabilityXml applicability;     // required
-        private RequirementsXml requirements;       // optional
+        private RequirementsXml
+                requirements;       // optional
 
         @XmlAttribute(name = "name", required = true)
         public String name;
@@ -103,11 +104,14 @@ public class IdsXml {
     // ---------- ids:entityType (+ requirements extension allows @instructions) ----------
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class EntityXml {
-        @XmlElement(name = "name")           public IdsValueXml name;           // required
-        @XmlElement(name = "predefinedType") public IdsValueXml predefinedType; // optional
+        @XmlElement(name = "name")
+        public IdsValueXml name;           // required
+        @XmlElement(name = "predefinedType")
+        public IdsValueXml predefinedType; // optional
 
         // Only used under <requirements> (extension), keep optional so applicability still works
-        @XmlAttribute public String instructions;
+        @XmlAttribute
+        public String instructions;
     }
 
     // ---------- ids:partOfType (+ requirements extension: @cardinality, @instructions) ----------
