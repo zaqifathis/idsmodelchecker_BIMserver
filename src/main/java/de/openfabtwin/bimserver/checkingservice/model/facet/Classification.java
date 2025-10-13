@@ -16,7 +16,7 @@ public class Classification extends Facet {
     public FacetType getType(){return FacetType.CLASSIFICATION; }
 
     @Override
-    public List<IdEObject> filter(IfcModelInterface elements, String minOccurs, String maxOccurs) {
+    public List<IdEObject> filter(IfcModelInterface elements) {
         return null;
     }
 }

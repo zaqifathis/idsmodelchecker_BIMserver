@@ -56,6 +56,8 @@ public class Specification {
     public void setMaxOccurs(String maxOccurs) { this.maxOccurs = maxOccurs; }
     public void setCardinality(String cardinality) { this.cardinality = cardinalityFromString(cardinality); }
     public void setApplicable_entities(List<IdEObject> applicable_entities) { this.applicable_entities = applicable_entities; }
+    public void setPassed_entities(List<IdEObject> passed_entities){this.passed_entities = passed_entities; }
+    public void setFailed_entities(List<IdEObject> failed_entities) {this.failed_entities = failed_entities; }
 
     public void reset_status(){
         this.status = null;
@@ -100,12 +102,6 @@ public class Specification {
             case "prohibited" -> PROHIBITED;
             default -> throw new IllegalArgumentException("Unknown cardinality: " + s);
         };
-    }
-
-    public void cardinalityFromMinMax() {
-        switch(this.minOccurs) {
-
-        }
     }
 
 

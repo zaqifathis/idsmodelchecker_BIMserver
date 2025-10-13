@@ -1,6 +1,5 @@
 package de.openfabtwin.bimserver.checkingservice.model;
 
-import de.openfabtwin.bimserver.checkingservice.IdsModelChecking;
 import de.openfabtwin.bimserver.checkingservice.model.facet.Facet;
 import de.openfabtwin.bimserver.checkingservice.report.ResultSpecification;
 import de.openfabtwin.bimserver.checkingservice.report.Results;
@@ -32,7 +31,7 @@ public class Ids {
                 if (!spec.getApplicability().isEmpty()) {
                     List<Facet> facets = spec.getApplicability();
                     for (Facet facet: facets) {
-                        spec.setApplicable_entities(facet.filter(model, spec.getMinOccurs(), spec.getMaxOccurs()));
+                        spec.setApplicable_entities(facet.filter(model));
                     }
                 }
 

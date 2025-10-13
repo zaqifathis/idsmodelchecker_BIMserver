@@ -3,10 +3,15 @@ package de.openfabtwin.bimserver.checkingservice.model.facet;
 
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Entity extends Facet {
+    Logger LOGGER = LoggerFactory.getLogger(Entity.class);
+
     private final String name;
     private final String predefinedType;
     private final String instructions;
@@ -29,13 +34,24 @@ public class Entity extends Facet {
     public String getProhibitedTemplate() {return this.prohibitedTemplate; }
 
     @Override
-    public List<IdEObject> filter(IfcModelInterface elements, String minOccurs, String maxOccurs) {
-        if (this.predefinedType == null) {
-            for (IdEObject element : elements) {
+    public List<IdEObject> filter(IfcModelInterface models) {
+        List<IdEObject> applicableEntities = new ArrayList<>();
+        for (IdEObject entity : models) {
+            String entityName = entity.eClass().getName();
+            if (entityName.equalsIgnoreCase(this.name)) {
+                List<IdEObject> subTypes = models.getAllWithSubTypes(models.getPackageMetaData().getEClass(entityName));
+                List<IdEObject> candidates = subTypes.isEmpty()? List.of(entity) : subTypes;
 
+                //check predefinedType
+                if (this.predefinedType != null) {
+                    for (IdEObject cd : candidates) {
+
+                    }
+                }
             }
+
         }
-        return null;
+        return applicableEntities;
     }
 
     @Override

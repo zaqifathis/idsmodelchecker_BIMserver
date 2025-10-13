@@ -5,6 +5,7 @@ import de.openfabtwin.bimserver.checkingservice.model.facet.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Mappers {
 
@@ -27,7 +28,7 @@ public class Mappers {
         // applicability (required in XSD)
         if (spXml.getApplicability() != null) {
             var ax = spXml.getApplicability();
-            s.setMinOccurs(ax.minOccurs);
+            s.setMinOccurs(Objects.requireNonNullElse(ax.minOccurs, "1"));
             s.setMaxOccurs(ax.maxOccurs);
 
             if (ax.entity != null) s.getApplicability().add(mapEntity(ax.entity));

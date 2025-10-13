@@ -12,35 +12,31 @@ public abstract class Facet {
     protected String applicabilityTemplate;
     protected String requirementTemplate;
     protected String prohibitedTemplate;
-    protected String minOccurs = "1";
-    protected String maxOccurs = "unbounded";
+    protected String minOccursReq = "1";
+    protected String maxOccursReq = "unbounded";
 
     public enum FacetType {ENTITY, ATTRIBUTE, CLASSIFICATION, PROPERTY, PARTOF, MATERIAL}
 
-    public void setMinMaxOccurs(Cardinality cardinality) {
+    public void setMinMaxOccursReq(Cardinality cardinality) {
         this.cardinality = cardinality;
         switch (cardinality) {
             case REQUIRED -> {
-                this.minOccurs = "1";
-                this.maxOccurs = "unbounded";
+                this.minOccursReq = "1";
+                this.maxOccursReq = "unbounded";
             }
             case OPTIONAL -> {
-                this.minOccurs = "0";
-                this.maxOccurs = "unbounded";
+                this.minOccursReq = "0";
+                this.maxOccursReq = "unbounded";
             }
             case PROHIBITED -> {
-                this.minOccurs = "0";
-                this.maxOccurs = "0";
-            }
-            default -> {
-                this.minOccurs = "1";
-                this.maxOccurs = "unbounded";
+                this.minOccursReq = "0";
+                this.maxOccursReq = "0";
             }
         }
     }
 
     public abstract FacetType getType();
-    public abstract List<IdEObject> filter(IfcModelInterface elements, String minOccurs, String maxOccurs);
+    public abstract List<IdEObject> filter(IfcModelInterface elements);
 }
 
 

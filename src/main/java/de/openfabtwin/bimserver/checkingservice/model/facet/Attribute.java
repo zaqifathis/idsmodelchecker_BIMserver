@@ -19,14 +19,14 @@ public class Attribute extends Facet {
         this.cardinality = Specification.cardinalityFromString(cardinality);
         this.instructions = instructions;
 
-        setMinMaxOccurs(this.cardinality);
+        setMinMaxOccursReq(this.cardinality);
     }
 
     @Override
     public FacetType getType() {return FacetType.ATTRIBUTE; }
 
     @Override
-    public List<IdEObject> filter(IfcModelInterface elements, String minOccurs, String maxOccurs) {
+    public List<IdEObject> filter(IfcModelInterface elements) {
         return null;
     }
 
