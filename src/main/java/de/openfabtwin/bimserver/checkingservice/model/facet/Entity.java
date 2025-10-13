@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Entity extends Facet {
     Logger LOGGER = LoggerFactory.getLogger(Entity.class);
@@ -34,7 +35,7 @@ public class Entity extends Facet {
     public String getProhibitedTemplate() {return this.prohibitedTemplate; }
 
     @Override
-    public List<IdEObject> filter(IfcModelInterface models) {
+    public List<IdEObject> filter(IfcModelInterface models, List<IdEObject> elements) {
         List<IdEObject> applicableEntities = new ArrayList<>();
         for (IdEObject entity : models) {
             String entityName = entity.eClass().getName();
@@ -43,13 +44,16 @@ public class Entity extends Facet {
                 List<IdEObject> candidates = subTypes.isEmpty()? List.of(entity) : subTypes;
 
                 //check predefinedType
-                if (this.predefinedType != null) {
+                if (this.predefinedType != null && this.predefinedType.matches("^[A-Z_]+$")) {
                     for (IdEObject cd : candidates) {
-
+                        Object val = cd.eGet(cd.eClass().getEStructuralFeature("PredefinedType"));
+                        if (val != null && Objects.equals(val.toString(), this.predefinedType)) {
+                            applicableEntities.add(cd);
+                        }
                     }
                 }
+                applicableEntities.addAll(candidates);
             }
-
         }
         return applicableEntities;
     }

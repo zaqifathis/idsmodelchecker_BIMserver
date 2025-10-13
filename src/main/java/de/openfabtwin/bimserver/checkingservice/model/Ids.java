@@ -19,31 +19,13 @@ public class Ids {
     public Map<String, Object> getInfo() { return info; }
     public List<Specification> getSpecifications() { return specifications; }
 
-    public Results validate(SProject project, IfcModelInterface model) {
-        final Results results = new Results(this);
+    public void validate(SProject project, IfcModelInterface model) {
 
         for (Specification spec : specifications) {
             spec.reset_status();
-            spec.check_ifc_version(project);
-            if(spec.getIs_ifc_version_supported() == Boolean.TRUE) {
-
-                // applicability
-                if (!spec.getApplicability().isEmpty()) {
-                    List<Facet> facets = spec.getApplicability();
-                    for (Facet facet: facets) {
-                        spec.setApplicable_entities(facet.filter(model));
-                    }
-                }
-
-                // requirement
-
-
-            }
-            ResultSpecification resultSpec = new ResultSpecification(spec);
-            results.getSpecifications().add(resultSpec);
+            spec.validate(project, model);
+            LOGGER.info("Specification '{}' checked: Status={}", spec.getName(), spec.getStatus());
         }
-
-        return results;
     }
 
 }

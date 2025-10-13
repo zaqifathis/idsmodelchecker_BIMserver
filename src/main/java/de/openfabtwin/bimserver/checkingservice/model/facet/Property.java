@@ -14,7 +14,7 @@ public class Property extends Facet {
     public FacetType getType(){return FacetType.PROPERTY; }
 
     @Override
-    public List<IdEObject> filter(IfcModelInterface elements) {
+    public List<IdEObject> filter(IfcModelInterface models, List<IdEObject> elements) {
         return null;
     }
 }

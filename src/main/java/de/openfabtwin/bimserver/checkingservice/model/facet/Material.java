@@ -14,7 +14,7 @@ public class Material extends Facet {
     public FacetType getType(){return FacetType.MATERIAL; }
 
     @Override
-    public List<IdEObject> filter(IfcModelInterface elements) {
+    public List<IdEObject> filter(IfcModelInterface models, List<IdEObject> elements) {
         return null;
     }
 }

@@ -58,9 +58,9 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
         SProject project = bimServerClientInterface.getServiceInterface().getProjectByPoid(poid);
         IfcModelInterface model = bimServerClientInterface.getModel(project, roid, true, false);
 
-        Results results = ids.validate(project, model);
-        Reporter reporter = new Reporter(results);
-        String txtReport = reporter.txtReport();
+        ids.validate(project, model);
+        LOGGER.info("Validation completed.");
+        String txtReport = "WIP";
 
         addExtendedData(txtReport.getBytes(), "result.txt", "OFT: IDS Model Checker Report", "text/plain", bimServerClientInterface, roid);
     }

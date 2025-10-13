@@ -2,6 +2,7 @@ package de.openfabtwin.bimserver.checkingservice.model;
 
 import de.openfabtwin.bimserver.checkingservice.model.facet.Facet;
 import org.bimserver.emf.IdEObject;
+import org.bimserver.emf.IfcModelInterface;
 import org.bimserver.interfaces.objects.SProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,15 +68,31 @@ public class Specification {
         this.is_ifc_version_supported = null;
     }
 
-    public void check_ifc_version(SProject project) {
+    private void check_ifc_version(SProject project) {
         String projectSchema = project.getSchema().toUpperCase();
         if (projectSchema.equals("IFC2X3TC1")) projectSchema = "IFC2X3";
         if (ifcVersion.contains(ifcVersionFromString(projectSchema))) {
             this.is_ifc_version_supported = Boolean.TRUE;
-            this.status = Boolean.TRUE;
         } else {
             this.is_ifc_version_supported = Boolean.FALSE;
-            this.status = Boolean.FALSE;
+        }
+    }
+
+    public void validate(SProject project, IfcModelInterface model) {
+        check_ifc_version(project);
+        if(this.is_ifc_version_supported == Boolean.TRUE) {
+
+            // applicability
+            if (!getApplicability().isEmpty()) {
+                List<IdEObject> elements = new ArrayList<>();
+                for (Facet facet: getApplicability()) {
+                    elements.addAll(facet.filter(model, elements));
+                }
+            }
+
+            // requirement
+
+
         }
     }
 
@@ -85,8 +102,8 @@ public class Specification {
         return switch (s.trim().toUpperCase()) {
             case "IFC2X3" -> IFC2X3;
             case "IFC4" -> IFC4;
-            case "IFC4X3_ADD2" -> IFC4X3_ADD2;
-            default -> throw new IllegalArgumentException("Unknown IFC version: " + s);
+//            case "IFC4X3_ADD2" -> IFC4X3_ADD2;
+            default -> throw new IllegalArgumentException("Only accept IFC2X3TC1 and IFC4. IFC version: " + s);
         };
     }
 

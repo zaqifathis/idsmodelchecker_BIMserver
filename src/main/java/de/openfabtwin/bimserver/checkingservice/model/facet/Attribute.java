@@ -26,7 +26,7 @@ public class Attribute extends Facet {
     public FacetType getType() {return FacetType.ATTRIBUTE; }
 
     @Override
-    public List<IdEObject> filter(IfcModelInterface elements) {
+    public List<IdEObject> filter(IfcModelInterface models, List<IdEObject> elements) {
         return null;
     }
 

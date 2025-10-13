@@ -36,7 +36,7 @@ public abstract class Facet {
     }
 
     public abstract FacetType getType();
-    public abstract List<IdEObject> filter(IfcModelInterface elements);
+    public abstract List<IdEObject> filter(IfcModelInterface models, List<IdEObject> elements);
 }
 
 
