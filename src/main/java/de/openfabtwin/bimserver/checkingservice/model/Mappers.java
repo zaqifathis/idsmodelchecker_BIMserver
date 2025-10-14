@@ -79,11 +79,14 @@ public class Mappers {
     }
 
     public static Entity mapEntity(IdsXml.EntityXml e) {
+        if(!(e.name.toString().equals(e.name.toString().toUpperCase()))) {
+            throw new IllegalArgumentException("Entity name must be uppercase: " + e.name);
+        }
+
         return new Entity(
                 up(text(e.name)),
                 up(text(e.predefinedType)),
                 e.instructions
-
         );
     }
 

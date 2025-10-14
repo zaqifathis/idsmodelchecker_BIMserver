@@ -36,26 +36,49 @@ public class Entity extends Facet {
 
     @Override
     public List<IdEObject> filter(IfcModelInterface models, List<IdEObject> elements) {
-        List<IdEObject> applicableEntities = new ArrayList<>();
-        for (IdEObject entity : models) {
-            String entityName = entity.eClass().getName();
-            if (entityName.equalsIgnoreCase(this.name)) {
-                List<IdEObject> subTypes = models.getAllWithSubTypes(models.getPackageMetaData().getEClass(entityName));
-                List<IdEObject> candidates = subTypes.isEmpty()? List.of(entity) : subTypes;
+        var meta = models.getPackageMetaData();
+        var eClass = meta.getEClass(this.name);
+        if(eClass == null) throw new IllegalArgumentException("Entity name is not valid: " + this.name);
 
-                //check predefinedType
-                if (this.predefinedType != null && this.predefinedType.matches("^[A-Z_]+$")) {
-                    for (IdEObject cd : candidates) {
-                        Object val = cd.eGet(cd.eClass().getEStructuralFeature("PredefinedType"));
-                        if (val != null && Objects.equals(val.toString(), this.predefinedType)) {
-                            applicableEntities.add(cd);
-                        }
+        List<IdEObject> candidates = models.getAllWithSubTypes(eClass);
+        if (candidates.isEmpty()) throw new IllegalArgumentException("No elements found for entity: " + this.name);
+
+        //check predefinedType
+        if (this.predefinedType == null) return candidates;
+        return resolvePredefinedType(candidates);
+    }
+
+    private List<IdEObject> resolvePredefinedType(List<IdEObject> candidates) {
+
+        if (!this.predefinedType.matches("^[A-Z_]+$")) {
+            throw new IllegalArgumentException("PredefinedType is not valid: " + this.predefinedType);
+        }
+
+        List<IdEObject> filtered = new ArrayList<>();
+        for (IdEObject cd : candidates) {
+            Object val = cd.eGet(cd.eClass().getEStructuralFeature("PredefinedType"));
+            if(val != null && val.toString().equals("USERDEFINED")) {
+                if (this.name.endsWith("TYPE")) {
+                    Object value = cd.eGet(cd.eClass().getEStructuralFeature("ElementType"));
+                    if (Objects.equals(value.toString(), this.predefinedType)) {
+                        filtered.add(cd);
+                    }
+                } else {
+                    Object value = cd.eGet(cd.eClass().getEStructuralFeature("ObjectType"));
+                    if (Objects.equals(value.toString(), this.predefinedType)) {
+                        filtered.add(cd);
                     }
                 }
-                applicableEntities.addAll(candidates);
+            }
+            else if (val != null && val.toString().equals(this.predefinedType)) {
+                filtered.add(cd);
             }
         }
-        return applicableEntities;
+
+        if (filtered.isEmpty()) {
+            throw new IllegalArgumentException("No elements found for entity " + this.name + " with PredefinedType " + this.predefinedType);
+        }
+        return filtered;
     }
 
     @Override

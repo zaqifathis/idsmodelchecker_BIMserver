@@ -1,5 +1,6 @@
 package de.openfabtwin.bimserver.checkingservice.model;
 
+import de.openfabtwin.bimserver.checkingservice.model.facet.Entity;
 import de.openfabtwin.bimserver.checkingservice.model.facet.Facet;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static de.openfabtwin.bimserver.checkingservice.model.Specification.Cardinality.*;
@@ -83,12 +85,16 @@ public class Specification {
         if(this.is_ifc_version_supported == Boolean.TRUE) {
 
             // applicability
-            if (!getApplicability().isEmpty()) {
-                List<IdEObject> elements = new ArrayList<>();
-                for (Facet facet: getApplicability()) {
-                    elements.addAll(facet.filter(model, elements));
+            List<Facet> applicability = getApplicability();
+            if (applicability.isEmpty()) return;
+
+            for (Facet facet : applicability) {
+                if (facet instanceof Entity) {
+                    List<IdEObject> elements = facet.filter(model, null);
+                    break;
                 }
             }
+
 
             // requirement
 
