@@ -90,11 +90,10 @@ public class Specification {
 
             for (Facet facet : applicability) {
                 if (facet instanceof Entity) {
-                    List<IdEObject> elements = facet.filter(model, null);
+                    List<IdEObject> elements = facet.filter(model, List.of());
                     break;
                 }
             }
-
 
             // requirement
 

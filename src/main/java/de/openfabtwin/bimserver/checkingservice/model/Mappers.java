@@ -79,13 +79,9 @@ public class Mappers {
     }
 
     public static Entity mapEntity(IdsXml.EntityXml e) {
-        if(!(e.name.toString().equals(e.name.toString().toUpperCase()))) {
-            throw new IllegalArgumentException("Entity name must be uppercase: " + e.name);
-        }
-
         return new Entity(
-                up(text(e.name)),
-                up(text(e.predefinedType)),
+                value(e.name),
+                value(e.predefinedType),
                 e.instructions
         );
     }
@@ -148,10 +144,9 @@ public class Mappers {
 
         if (v.restriction != null) {
             List<String> enums = new ArrayList<>();
-            for (IdsXml.EnumFacetXml e : v.restriction.enumeration) enums.add(e.value);
-            List<String> pats  = new ArrayList<>();
-            for (IdsXml.PatternFacetXml p : v.restriction.pattern) pats.add(p.value);
-            return new RestrictionValue(enums, pats);
+            if (v.restriction.enumeration != null) for (IdsXml.EnumFacetXml e : v.restriction.enumeration) enums.add(e.value);
+            //String pattern = v.restriction.pattern.value != null ? v.restriction.pattern.value : null; TODO: next add pattern
+            return new RestrictionValue(enums);
         }
         return null;
     }

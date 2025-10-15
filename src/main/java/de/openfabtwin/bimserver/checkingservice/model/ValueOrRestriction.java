@@ -6,4 +6,4 @@ import java.util.List;
 sealed public interface ValueOrRestriction permits SimpleValue, RestrictionValue {}
 
 record SimpleValue(String value) implements ValueOrRestriction {}
-record RestrictionValue(List<String> enums, List<String> patterns) implements ValueOrRestriction {}
+record RestrictionValue(List<String> enums) implements ValueOrRestriction {} //TODO:add pattern

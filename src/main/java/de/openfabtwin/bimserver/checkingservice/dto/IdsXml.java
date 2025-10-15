@@ -181,6 +181,7 @@ public class IdsXml {
         public RestrictionXml restriction;
     }
 
+    //TODO: add Bounds and Length
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class RestrictionXml {
         @XmlAttribute public String base; // often omitted in IDS
@@ -189,7 +190,7 @@ public class IdsXml {
         public List<EnumFacetXml> enumeration = new ArrayList<>();
 
         @XmlElement(name = "pattern", namespace = "http://www.w3.org/2001/XMLSchema")
-        public List<PatternFacetXml> pattern = new ArrayList<>();
+        public PatternFacetXml pattern;
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
