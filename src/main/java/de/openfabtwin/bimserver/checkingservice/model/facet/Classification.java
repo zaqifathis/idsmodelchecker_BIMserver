@@ -1,6 +1,6 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
 
-import de.openfabtwin.bimserver.checkingservice.model.ValueOrRestriction;
+import de.openfabtwin.bimserver.checkingservice.model.Value;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 
@@ -8,7 +8,7 @@ import java.util.List;
 
 public class Classification extends Facet {
 
-    public Classification(String system, ValueOrRestriction value, String uri, String cardinality, String instructions){
+    public Classification(Value system, Value value, String uri, String cardinality, String instructions){
 
     }
 

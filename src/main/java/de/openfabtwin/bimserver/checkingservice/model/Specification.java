@@ -1,5 +1,6 @@
 package de.openfabtwin.bimserver.checkingservice.model;
 
+import de.openfabtwin.bimserver.checkingservice.dto.IdsXml;
 import de.openfabtwin.bimserver.checkingservice.model.facet.Entity;
 import de.openfabtwin.bimserver.checkingservice.model.facet.Facet;
 import org.bimserver.emf.IdEObject;
@@ -9,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static de.openfabtwin.bimserver.checkingservice.model.Specification.Cardinality.*;
@@ -82,26 +82,26 @@ public class Specification {
 
     public void validate(SProject project, IfcModelInterface model) {
         check_ifc_version(project);
-        if(this.is_ifc_version_supported == Boolean.TRUE) {
+        if (this.is_ifc_version_supported == Boolean.FALSE) return;
 
-            // applicability
-            List<Facet> applicability = getApplicability();
-            if (applicability.isEmpty()) return;
+        // applicability
+        List<Facet> applicability = getApplicability();
+        if (applicability.isEmpty()) return;
 
-            for (Facet facet : applicability) {
-                if (facet instanceof Entity) {
-                    List<IdEObject> elements = facet.filter(model, List.of());
-                    break;
-                }
+        for (Facet facet : applicability) {
+            if (facet instanceof Entity) {
+                List<IdEObject> elements = facet.filter(model, List.of());
+                break;
             }
-
-            // requirement
-
-
         }
+
+        // requirement
+
+
     }
 
     public enum IfcVersion {IFC2X3, IFC4, IFC4X3_ADD2 }
+    public enum Cardinality {REQUIRED, OPTIONAL, PROHIBITED}
 
     public static IfcVersion ifcVersionFromString(String s) {
         return switch (s.trim().toUpperCase()) {
@@ -111,8 +111,6 @@ public class Specification {
             default -> throw new IllegalArgumentException("Only accept IFC2X3TC1 and IFC4. IFC version: " + s);
         };
     }
-
-    public enum Cardinality {REQUIRED, OPTIONAL, PROHIBITED}
 
     public static Cardinality cardinalityFromString(String s) {
         if (s == null || s.isBlank()) {

@@ -17,6 +17,7 @@ public class IdsXml {
 
     // ---------- <info> ----------
     @XmlAccessorType(XmlAccessType.FIELD)
+    @XmlType(propOrder = {"title","copyright","version","description","author","date","purpose","milestone"})
     public static class InfoXml {
         private String title;
         private String copyright;
@@ -98,7 +99,8 @@ public class IdsXml {
         @XmlElement(name = "material")      public List<MaterialXml> material     = new ArrayList<>();
 
         // extension on the <requirements> element itself:
-        @XmlAttribute public String description;
+        @XmlAttribute(name = "description")
+        public String description;
     }
 
     // ---------- ids:entityType (+ requirements extension allows @instructions) ----------
@@ -110,7 +112,7 @@ public class IdsXml {
         public IdsValueXml predefinedType; // optional
 
         // Only used under <requirements> (extension), keep optional so applicability still works
-        @XmlAttribute
+        @XmlAttribute(name = "instructions")
         public String instructions;
     }
 
@@ -202,4 +204,6 @@ public class IdsXml {
     public static class PatternFacetXml {
         @XmlAttribute(name = "value") public String value;
     }
+
+
 }

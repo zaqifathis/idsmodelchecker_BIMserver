@@ -1,19 +1,19 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
 
 import de.openfabtwin.bimserver.checkingservice.model.Specification;
-import de.openfabtwin.bimserver.checkingservice.model.ValueOrRestriction;
+import de.openfabtwin.bimserver.checkingservice.model.Value;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 
 import java.util.List;
 
 public class Attribute extends Facet {
-    private final String name;
-    private final ValueOrRestriction value;
+    private final Value name;
+    private final Value value;
     private Specification.Cardinality cardinality;
     private final String instructions;
 
-    public Attribute(String name, ValueOrRestriction value, String cardinality, String instructions){
+    public Attribute(Value name, Value value, String cardinality, String instructions){
         this.name = name;
         this.value = value;
         this.cardinality = Specification.cardinalityFromString(cardinality);

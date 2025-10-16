@@ -1,25 +1,23 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
 
 
-import de.openfabtwin.bimserver.checkingservice.model.ValueOrRestriction;
+import de.openfabtwin.bimserver.checkingservice.model.Value;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class Entity extends Facet {
     Logger LOGGER = LoggerFactory.getLogger(Entity.class);
 
-    private final ValueOrRestriction name;
-    private final ValueOrRestriction predefinedType;
+    private final Value name;
+    private final Value predefinedType;
     private final String instructions;
 
 
-    public Entity(ValueOrRestriction name, ValueOrRestriction predefinedType, String instructions) {
+    public Entity(Value name, Value predefinedType, String instructions) {
         this.name = name;
         this.predefinedType = predefinedType;
         this.instructions = (instructions == null || instructions.isBlank()) ? null : instructions;
@@ -28,8 +26,8 @@ public class Entity extends Facet {
         this.prohibitedTemplate = predefinedType != null ? "Shall not be " + name + " data of type " + predefinedType : "Shall not be " + name + " data";
     }
 
-    public ValueOrRestriction getName() { return name; }
-    public ValueOrRestriction getPredefinedType() { return predefinedType; }
+    public Value getName() { return name; }
+    public Value getPredefinedType() { return predefinedType; }
     public String getInstructions() { return instructions; }
     public String getApplicabilityTemplate() {return this.applicabilityTemplate; }
     public String getRequirementTemplate() {return this.requirementTemplate; }
