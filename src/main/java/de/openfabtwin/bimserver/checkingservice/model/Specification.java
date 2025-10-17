@@ -1,6 +1,5 @@
 package de.openfabtwin.bimserver.checkingservice.model;
 
-import de.openfabtwin.bimserver.checkingservice.dto.IdsXml;
 import de.openfabtwin.bimserver.checkingservice.model.facet.Entity;
 import de.openfabtwin.bimserver.checkingservice.model.facet.Facet;
 import org.bimserver.emf.IdEObject;
@@ -33,6 +32,50 @@ public class Specification {
     private Boolean is_ifc_version_supported = null; // null=not checked, true=supported, false=not supported
     private Cardinality cardinality;
 
+
+    public void reset_status(){
+        this.status = null;
+        this.applicable_entities.clear();
+        this.passed_entities.clear();
+        this.failed_entities.clear();
+        this.is_ifc_version_supported = null;
+    }
+
+    private void check_ifc_version(SProject project) {
+        String projectSchema = project.getSchema().toUpperCase();
+        if (projectSchema.equals("IFC2X3TC1")) projectSchema = "IFC2X3";
+        if (ifcVersion.contains(ifcVersionFromString(projectSchema))) {
+            this.is_ifc_version_supported = Boolean.TRUE;
+        } else {
+            this.is_ifc_version_supported = Boolean.FALSE;
+        }
+    }
+
+    public void validate(SProject project, IfcModelInterface model) {
+        check_ifc_version(project);
+        if (this.is_ifc_version_supported == Boolean.FALSE) return;
+
+        // Applicability
+        List<Facet> applicability = getApplicability();
+        if (applicability.isEmpty()) return;
+
+        Facet facet = applicability.stream().filter(f -> f instanceof Entity)
+                .findFirst()
+                .orElse(applicability.get(0));
+
+        List<IdEObject> applicable = facet.filter(model, null);
+
+        for (Facet f : applicability){
+            if (f == facet) continue;
+            applicable = f.filter(model, applicable);
+            if(applicable.isEmpty()) break;
+        }
+
+        // Requirements
+
+    }
+
+
     public String getName() { return name; }
     public List<IfcVersion> getIfcVersion() { return ifcVersion; }
     public String getIdentifier() { return identifier; }
@@ -61,44 +104,6 @@ public class Specification {
     public void setApplicable_entities(List<IdEObject> applicable_entities) { this.applicable_entities = applicable_entities; }
     public void setPassed_entities(List<IdEObject> passed_entities){this.passed_entities = passed_entities; }
     public void setFailed_entities(List<IdEObject> failed_entities) {this.failed_entities = failed_entities; }
-
-    public void reset_status(){
-        this.status = null;
-        this.applicable_entities.clear();
-        this.passed_entities.clear();
-        this.failed_entities.clear();
-        this.is_ifc_version_supported = null;
-    }
-
-    private void check_ifc_version(SProject project) {
-        String projectSchema = project.getSchema().toUpperCase();
-        if (projectSchema.equals("IFC2X3TC1")) projectSchema = "IFC2X3";
-        if (ifcVersion.contains(ifcVersionFromString(projectSchema))) {
-            this.is_ifc_version_supported = Boolean.TRUE;
-        } else {
-            this.is_ifc_version_supported = Boolean.FALSE;
-        }
-    }
-
-    public void validate(SProject project, IfcModelInterface model) {
-        check_ifc_version(project);
-        if (this.is_ifc_version_supported == Boolean.FALSE) return;
-
-        // applicability
-        List<Facet> applicability = getApplicability();
-        if (applicability.isEmpty()) return;
-
-        for (Facet facet : applicability) {
-            if (facet instanceof Entity) {
-                List<IdEObject> elements = facet.filter(model, List.of());
-                break;
-            }
-        }
-
-        // requirement
-
-
-    }
 
     public enum IfcVersion {IFC2X3, IFC4, IFC4X3_ADD2 }
     public enum Cardinality {REQUIRED, OPTIONAL, PROHIBITED}

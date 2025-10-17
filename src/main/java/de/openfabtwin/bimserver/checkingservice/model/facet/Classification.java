@@ -16,7 +16,12 @@ public class Classification extends Facet {
     public FacetType getType(){return FacetType.CLASSIFICATION; }
 
     @Override
-    public List<IdEObject> filter(IfcModelInterface models, List<IdEObject> elements) {
-        return null;
+    protected List<IdEObject> discover(IfcModelInterface model) {
+        return List.of();
+    }
+
+    @Override
+    protected boolean matches(IfcModelInterface models, IdEObject element) {
+        return false;
     }
 }

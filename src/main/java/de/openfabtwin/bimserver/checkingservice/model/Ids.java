@@ -1,8 +1,5 @@
 package de.openfabtwin.bimserver.checkingservice.model;
 
-import de.openfabtwin.bimserver.checkingservice.model.facet.Facet;
-import de.openfabtwin.bimserver.checkingservice.report.ResultSpecification;
-import de.openfabtwin.bimserver.checkingservice.report.Results;
 import org.bimserver.emf.IfcModelInterface;
 import org.bimserver.interfaces.objects.SProject;
 import org.slf4j.Logger;

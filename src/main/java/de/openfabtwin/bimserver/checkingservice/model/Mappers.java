@@ -81,7 +81,7 @@ public class Mappers {
     public static Entity mapEntity(IdsXml.EntityXml e) {
         return new Entity(
                 value(e.name),
-                value(e.predefinedType),
+                e.predefinedType,
                 e.instructions
         );
     }
@@ -89,7 +89,7 @@ public class Mappers {
     public static PartOf mapPartOf(IdsXml.PartOfXml po) {
         return new PartOf(
                 value(po.entity.name),
-                value(po.entity.predefinedType),
+                po.entity.predefinedType,
                 po.relation,
                 po.cardinality,
                 po.instructions

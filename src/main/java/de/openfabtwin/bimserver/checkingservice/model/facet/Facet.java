@@ -1,9 +1,12 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
-
+import de.openfabtwin.bimserver.checkingservice.model.RestrictionValue;
+import de.openfabtwin.bimserver.checkingservice.model.SimpleValue;
 import de.openfabtwin.bimserver.checkingservice.model.Specification.Cardinality;
+import de.openfabtwin.bimserver.checkingservice.model.Value;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Facet {
@@ -35,8 +38,26 @@ public abstract class Facet {
         }
     }
 
+    protected static List<String> extractNames(Value name) {
+        if (name instanceof SimpleValue sv) return List.of(sv.value());
+        if (name instanceof RestrictionValue rv) return rv.enums();
+        return List.of();
+    }
+
+    public List<IdEObject> filter(IfcModelInterface models, List<IdEObject> elements) {
+        if (elements != null && !elements.isEmpty()) {
+            List<IdEObject> candidate = new ArrayList<>();
+            for (IdEObject el : elements){
+               if (matches(models,el)) candidate.add(el);
+            }
+            return candidate;
+        }
+        return discover(models);
+    }
+    protected abstract List<IdEObject> discover(IfcModelInterface model);
+    protected abstract boolean matches(IfcModelInterface models, IdEObject element);
     public abstract FacetType getType();
-    public abstract List<IdEObject> filter(IfcModelInterface models, List<IdEObject> elements);
+
 }
 
 

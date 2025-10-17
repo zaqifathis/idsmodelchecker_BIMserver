@@ -109,7 +109,7 @@ public class IdsXml {
         @XmlElement(name = "name")
         public IdsValueXml name;           // required
         @XmlElement(name = "predefinedType")
-        public IdsValueXml predefinedType; // optional
+        public String predefinedType; // optional
 
         // Only used under <requirements> (extension), keep optional so applicability still works
         @XmlAttribute(name = "instructions")
