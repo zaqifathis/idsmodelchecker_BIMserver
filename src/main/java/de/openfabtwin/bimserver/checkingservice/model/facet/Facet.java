@@ -44,15 +44,15 @@ public abstract class Facet {
         return List.of();
     }
 
-    public List<IdEObject> filter(IfcModelInterface models, List<IdEObject> elements) {
+    public List<IdEObject> filter(IfcModelInterface model, List<IdEObject> elements) {
         if (elements != null && !elements.isEmpty()) {
             List<IdEObject> candidate = new ArrayList<>();
             for (IdEObject el : elements){
-               if (matches(models,el)) candidate.add(el);
+               if (matches(model,el)) candidate.add(el);
             }
             return candidate;
         }
-        return discover(models);
+        return discover(model);
     }
     protected abstract List<IdEObject> discover(IfcModelInterface model);
     protected abstract boolean matches(IfcModelInterface models, IdEObject element);

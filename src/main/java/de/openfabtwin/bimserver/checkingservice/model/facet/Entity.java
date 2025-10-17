@@ -1,10 +1,8 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
 
-
 import de.openfabtwin.bimserver.checkingservice.model.Value;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
-import org.eclipse.emf.ecore.EStructuralFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,15 +26,19 @@ public class Entity extends Facet {
     }
 
     @Override
-    protected List<IdEObject> discover(IfcModelInterface models) {
+    protected List<IdEObject> discover(IfcModelInterface model) {
         List<String> entitiesName = extractNames(name);
         List<IdEObject> candidates = new ArrayList<>();
-        var meta = models.getPackageMetaData();
+        var meta = model.getPackageMetaData();
         for (String name : entitiesName) {
-            var eClass = meta.getEClass(name);
-            if(eClass == null) throw new IllegalArgumentException("Entity name is not valid: " + this.name);
-            candidates.addAll(models.getAllWithSubTypes(eClass));
+            for (IdEObject obj : model) {
+                String objName = obj.eClass().getName();
+                if (name.equalsIgnoreCase(objName)) {
+                    candidates.addAll(model.getAllWithSubTypes(obj.eClass()));
+                }
+            }
         }
+        LOGGER.info("Discovered " + candidates.size() + " candidates for Entity facet with names " + entitiesName);
         return predefinedFilter(candidates);
     }
 
@@ -52,7 +54,7 @@ public class Entity extends Facet {
                     if (!(relObj instanceof IdEObject rel)) continue;
 
                     String relClass = rel.eClass().getName();
-                    if (!"IFCRELDEFINESBYTYPE".equals(relClass)) continue;
+                    if (!"IfcRelDefinesByType".equals(relClass)) continue;
 
                     IdEObject type = asObject(rel, "RelatingType");
                     if (type == null) continue;
@@ -60,8 +62,10 @@ public class Entity extends Facet {
                     String pt = asString(type, "PredefinedType");
                     if (eq(pt, "USERDEFINED")){
                         val = asString(type, "ElementType");
+                        LOGGER.info("USERDEFINED PredefinedType found. Checking ElementType='" + val + "' against predefinedType='" + predefinedType + "'");
                         if(eq(val,predefinedType)) filtered.add(cd); break;
                     } else if (eq(pt,predefinedType)) {
+                        LOGGER.info("PredefinedType match found- IsTypeBy: " + pt + " == " + predefinedType);
                         filtered.add(cd); break;
                     } else {
                         if (objType(cd)) filtered.add(cd);
@@ -82,6 +86,7 @@ public class Entity extends Facet {
         String pdef = asString(obj,"PredefinedType");
         if (eq(pdef, "USERDEFINED")) {
             String val = asString(obj,"ObjectType");
+            LOGGER.info("USERDEFINED PredefinedType found. Checking ObjectType='" + val + "' against predefinedType='" + predefinedType + "'");
             if (eq(val, predefinedType)) return true;
         } //6th check
         return eq(pdef, predefinedType);
