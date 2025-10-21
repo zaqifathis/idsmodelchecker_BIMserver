@@ -54,19 +54,13 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
         }
 
         Ids ids = IdsMapper.read(URL_IDS);
-        LOGGER.info("Using IDS: " + ids.getSpecifications().size() + "spec size, " + ids.getSpecifications().get(0).getApplicability().size() + " applicability facets, " +
-                ids.getSpecifications().get(0).getRequirements().size() + " requirement facets.");
 
         SProject project = bimServerClientInterface.getServiceInterface().getProjectByPoid(poid);
-        IfcModelInterface elements = bimServerClientInterface.getModel(project, roid, true, false);
-        LOGGER.info("Model has " + elements.size() + " elements.");
-        for (IdEObject element : elements) {
-            LOGGER.debug("Element: " + element.getClass().getSimpleName() + " - " + element.getOid() + " - " + element.toString());
-        }
+        IfcModelInterface model = bimServerClientInterface.getModel(project, roid, true, false);
 
-        Results results = ids.validate(project, elements);
-        Reporter reporter = new Reporter(results);
-        String txtReport = reporter.txtReport();
+        ids.validate(project, model);
+        LOGGER.info("Validation completed.");
+        String txtReport = "WIP";
 
         addExtendedData(txtReport.getBytes(), "result.txt", "OFT: IDS Model Checker Report", "text/plain", bimServerClientInterface, roid);
     }
