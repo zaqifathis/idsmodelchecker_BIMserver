@@ -2,9 +2,6 @@ package de.openfabtwin.bimserver.checkingservice;
 
 import de.openfabtwin.bimserver.checkingservice.model.Ids;
 import de.openfabtwin.bimserver.checkingservice.model.IdsMapper;
-import de.openfabtwin.bimserver.checkingservice.report.Reporter;
-import de.openfabtwin.bimserver.checkingservice.report.Results;
-import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 import org.bimserver.interfaces.objects.SObjectType;
 import org.bimserver.interfaces.objects.SProject;

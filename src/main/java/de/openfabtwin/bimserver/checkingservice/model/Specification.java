@@ -98,6 +98,8 @@ public class Specification {
             } else if ("0".equals(this.maxOccurs)) { //prohibited specification
                 if (!this.applicable_entities.isEmpty() && this.requirements.isEmpty()) this.status = false;
             }
+
+            LOGGER.info("Specification '{}' validated. Status: {}", this.name, this.status ? "PASS" : "FAIL");
         }
     }
 
