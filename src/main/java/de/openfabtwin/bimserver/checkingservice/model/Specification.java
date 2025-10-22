@@ -53,7 +53,7 @@ public class Specification {
             boolean isApplicable = true;
             for (Facet f : this.applicability) {
                 if (f == facet) continue;
-                if (f.matches(element).isPass()) {
+                if (!f.matches(element).isPass()) {
                     isApplicable = false;
                     break;
                 }
