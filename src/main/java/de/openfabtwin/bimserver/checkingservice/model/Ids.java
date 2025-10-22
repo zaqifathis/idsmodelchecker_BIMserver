@@ -19,9 +19,7 @@ public class Ids {
     public void validate(SProject project, IfcModelInterface model) {
 
         for (Specification spec : specifications) {
-            spec.reset_status();
             spec.validate(project, model);
-            LOGGER.info("Specification '{}' checked: Status={}", spec.getName(), spec.getStatus());
         }
     }
 

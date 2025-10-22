@@ -11,7 +11,7 @@ public class Results {
     private Date date;
     private String fileName;
     private boolean status;
-    private List<ResultSpecification> specifications = new ArrayList<>();
+    private List<ResultSpecification> specifications;
     private int totalSpecifications;
     private int totalSpecifications_passed;
     private int totalSpecifications_failed;

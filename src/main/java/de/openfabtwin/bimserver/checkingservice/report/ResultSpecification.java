@@ -7,7 +7,6 @@ import java.util.List;
 public class ResultSpecification {
     private final String name;
     private final String description;
-    private final String identifier;
     private final String instructions;
     private final Boolean status;
     private final Boolean is_ifc_version;
@@ -17,14 +16,13 @@ public class ResultSpecification {
     private int total_checks;
     private int total_checks_passed;
     private int total_checks_failed;
-    private String cardinality;
+    private boolean required;
     private List<String> applicability;
     private List<ResultRequirement> requirements;
 
     public ResultSpecification(Specification specification) {
         this.name = specification.getName();
         this.description = specification.getDescription();
-        this.identifier = specification.getIdentifier();
         this.instructions = specification.getInstructions();
         this.status = specification.getStatus();
         this.is_ifc_version = specification.getIs_ifc_version_supported();
@@ -35,7 +33,6 @@ public class ResultSpecification {
 
     public String getName() { return name; }
     public String getDescription() { return description; }
-    public String getIdentifier() { return identifier; }
     public String getInstructions() { return instructions; }
     public Boolean getStatus() { return status; }
     public Boolean getIs_ifc_version() { return is_ifc_version; }
@@ -45,7 +42,6 @@ public class ResultSpecification {
     public int getTotal_checks() { return total_checks; }
     public int getTotal_checks_passed() { return total_checks_passed; }
     public int getTotal_checks_failed() { return total_checks_failed; }
-    public String getCardinality() { return cardinality; }
     public List<String> getApplicability() { return applicability; }
     public List<ResultRequirement> getRequirements() { return requirements; }
 }

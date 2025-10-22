@@ -1,6 +1,5 @@
 package de.openfabtwin.bimserver.checkingservice.report;
 
-import de.openfabtwin.bimserver.checkingservice.model.Ids;
 
 public class Reporter {
     private final Results results;

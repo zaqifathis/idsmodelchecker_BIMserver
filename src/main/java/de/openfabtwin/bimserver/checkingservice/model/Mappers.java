@@ -51,23 +51,18 @@ public class Mappers {
 
             for (IdsXml.PartOfXml po : rx.partOf) {
                 s.getRequirements().add(mapPartOf(po));
-                s.setCardinality(po.cardinality);
             }
             for (IdsXml.ClassificationXml cx : rx.classification) {
                 s.getRequirements().add(mapClassification(cx));
-                s.setCardinality(cx.cardinality);
             }
             for (IdsXml.AttributeXml at : rx.attribute) {
                 s.getRequirements().add(mapAttribute(at));
-                s.setCardinality(at.cardinality);
             }
             for (IdsXml.PropertyXml px : rx.property) {
                 s.getRequirements().add(mapProperty(px));
-                s.setCardinality(px.cardinality);
             }
             for (IdsXml.MaterialXml mx : rx.material) {
                 s.getRequirements().add(mapMaterial(mx));
-                s.setCardinality(mx.cardinality);
             }
 
             if (rx.description != null && (s.getDescription() == null || s.getDescription().isBlank())) {
@@ -139,12 +134,6 @@ public class Mappers {
     //helpers for value/restriction
     private static String up(String s) { return s == null ? null : s.trim().toUpperCase(); }
     private static String defCard(String c) { return (c == null || c.isBlank()) ? "required" : c; }
-
-//    private static String text(IdsXml.IdsValueXml v) {
-//        if (v == null) return null;
-//        if (v.simpleValue != null && !v.simpleValue.isBlank()) return v.simpleValue;
-//        return null;
-//    }
 
     private static Value value(IdsXml.IdsValueXml v) {
         if (v == null) return null;

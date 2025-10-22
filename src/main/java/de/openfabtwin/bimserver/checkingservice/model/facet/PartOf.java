@@ -1,6 +1,7 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
 
 import de.openfabtwin.bimserver.checkingservice.model.Value;
+import de.openfabtwin.bimserver.checkingservice.model.result.Result;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 
@@ -14,13 +15,13 @@ public class PartOf extends Facet {
     public FacetType getType(){return FacetType.PARTOF; }
 
     @Override
-    protected List<IdEObject> discover(IfcModelInterface model) {
+    public List<IdEObject> filter(IfcModelInterface model) {
         return List.of();
     }
 
     @Override
-    protected boolean matches(IfcModelInterface models, IdEObject element) {
-        return false;
+    public Result matches(IdEObject element) {
+        return null;
     }
 
 

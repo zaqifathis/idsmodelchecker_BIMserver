@@ -1,63 +1,75 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
 import de.openfabtwin.bimserver.checkingservice.model.RestrictionValue;
 import de.openfabtwin.bimserver.checkingservice.model.SimpleValue;
-import de.openfabtwin.bimserver.checkingservice.model.Specification.Cardinality;
 import de.openfabtwin.bimserver.checkingservice.model.Value;
+import de.openfabtwin.bimserver.checkingservice.model.result.Result;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
+import static de.openfabtwin.bimserver.checkingservice.model.facet.Facet.Cardinality.*;
 
 public abstract class Facet {
-    protected Cardinality cardinality = Cardinality.REQUIRED;
+    protected Cardinality cardinality = REQUIRED;
     protected Boolean status = null;
-    protected String applicabilityTemplate;
-    protected String requirementTemplate;
-    protected String prohibitedTemplate;
-    protected String minOccursReq = "1";
-    protected String maxOccursReq = "unbounded";
+    protected Set<IdEObject> passedEntities = new HashSet<>();
+    protected List<FacetFailure> failures = new ArrayList<>();
 
     public enum FacetType {ENTITY, ATTRIBUTE, CLASSIFICATION, PROPERTY, PARTOF, MATERIAL}
+    public enum Cardinality {REQUIRED, OPTIONAL, PROHIBITED}
 
-    public void setMinMaxOccursReq(Cardinality cardinality) {
-        this.cardinality = cardinality;
-        switch (cardinality) {
-            case REQUIRED -> {
-                this.minOccursReq = "1";
-                this.maxOccursReq = "unbounded";
-            }
-            case OPTIONAL -> {
-                this.minOccursReq = "0";
-                this.maxOccursReq = "unbounded";
-            }
-            case PROHIBITED -> {
-                this.minOccursReq = "0";
-                this.maxOccursReq = "0";
-            }
+    protected static List<String> extractValue(Value name, boolean checkUpperCase) {
+        List<String> result = new ArrayList<>();
+        if (name instanceof SimpleValue sv) result = List.of(sv.value());
+        else if (name instanceof RestrictionValue rv) result = rv.enums();
+
+        if (checkUpperCase) {
+            boolean allUppercase = result.stream()
+                    .filter(Objects::nonNull)
+                    .allMatch(s -> s.equals(s.toUpperCase()));
+            if (!allUppercase) return List.of();
         }
+        return result;
     }
 
-    protected static List<String> extractValue(Value name) {
-        if (name instanceof SimpleValue sv) return List.of(sv.value());
-        if (name instanceof RestrictionValue rv) return rv.enums();
-        return List.of();
-    }
-
-    public List<IdEObject> filter(IfcModelInterface model, List<IdEObject> elements) {
-        if (elements != null && !elements.isEmpty()) {
-            List<IdEObject> candidate = new ArrayList<>();
-            for (IdEObject el : elements){
-               if (matches(model,el)) candidate.add(el);
-            }
-            return candidate;
-        }
-        return discover(model);
-    }
-    protected abstract List<IdEObject> discover(IfcModelInterface model);
-    protected abstract boolean matches(IfcModelInterface models, IdEObject element);
+    public abstract List<IdEObject> filter(IfcModelInterface model);
+    public abstract Result matches(IdEObject element);
     public abstract FacetType getType();
 
+    public static Cardinality cardinalityFromString(String s) {
+        if (s == null || s.isBlank()) {
+            return null;
+        }
+        return switch (s.trim().toLowerCase()) {
+            case "required" -> REQUIRED;
+            case "optional" -> OPTIONAL;
+            case "prohibited" -> PROHIBITED;
+            default -> null;
+        };
+    }
+
+    public void to_string() {}
+
+    public void addPassedEntities(IdEObject element) {
+        this.passedEntities.add(element);
+    }
+
+    public void addFailures(IdEObject element, String reason) {
+        this.failures.add(new FacetFailure(element, reason));
+    }
+
+    public void setStatus(boolean bool) {
+        this.status = bool;
+    }
+
+    public List<FacetFailure> getFailures () {
+        return this.failures;
+    }
+
+    public boolean isStatus(){
+        return this.status;
+    }
 }
 
 

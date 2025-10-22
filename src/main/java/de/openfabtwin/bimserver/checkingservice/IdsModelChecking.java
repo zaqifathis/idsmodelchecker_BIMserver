@@ -62,7 +62,7 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
         LOGGER.info("Validation completed.");
         String txtReport = "WIP";
 
-        addExtendedData(txtReport.getBytes(), "result.txt", "OFT: IDS Model Checker Report", "text/plain", bimServerClientInterface, roid);
+        addExtendedData(txtReport.getBytes(), "result.txt", "IDS Model Checker Report", "text/plain", bimServerClientInterface, roid);
     }
 
     @Override
