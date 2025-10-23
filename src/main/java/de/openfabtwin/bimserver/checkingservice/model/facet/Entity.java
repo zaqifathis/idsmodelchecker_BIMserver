@@ -13,21 +13,19 @@ import java.util.*;
 
 public class Entity extends Facet {
 
-    private final Value name;
-    private final Value predefinedType;
+    private final List<String> name;
+    private final List<String> predefinedType;
     private final String instructions;
 
 
     public Entity(Value name, Value predefinedType, String instructions) {
-        this.name = name;
-        this.predefinedType = predefinedType;
+        this.name = extractValue(name, true);
+        this.predefinedType = extractValue(predefinedType, false);
         this.instructions = instructions;
 
-        List<String> nameValues = extractValue(name, true);
-        List<String> predefinedValues = extractValue(predefinedType, false);
-        boolean hasPredefined = !predefinedValues.isEmpty();
-        String namePart = joinValues(nameValues);
-        String predefinedPart = joinValues(predefinedValues);
+        boolean hasPredefined = !this.predefinedType.isEmpty();
+        String namePart = joinValues(this.name);
+        String predefinedPart = joinValues(this.predefinedType);
 
         if (hasPredefined) {
             this.applicability_templates = "All " + namePart + " data of type " + predefinedPart;
@@ -42,11 +40,10 @@ public class Entity extends Facet {
 
     @Override
     public Result matches(IdEObject element) {
-        List<String> entitiesName = extractValue(name, true);
         String entName = element.eClass().getName().toUpperCase(Locale.ROOT);
 
         Map<String, Object> reason = null;
-        boolean isPass = entitiesName.contains(entName);
+        boolean isPass = this.name.contains(entName);
 
         if (!isPass) {
             reason = Map.of(
@@ -60,7 +57,7 @@ public class Entity extends Facet {
             if (!isPass) {
                 reason = Map.of(
                         "type", "PREDEFINEDTYPE",
-                        "actual", extractValue(this.predefinedType, false)
+                        "actual", this.predefinedType
                 );
             }
         }
@@ -70,14 +67,13 @@ public class Entity extends Facet {
     @Override
     public List<IdEObject> filter(IfcModelInterface model) {
         List<IdEObject> candidates = new ArrayList<>();
-        List<String> entitiesName = extractValue(name, true);
-        if (entitiesName.isEmpty()) return candidates;
+        if (this.name.isEmpty()) return candidates;
 
         var meta = model.getPackageMetaData();
         Map<String, EClass> upperIndex = buildUpperIndex(meta.getEPackage());
 
         Set<Long> seen = new HashSet<>();
-        for (String entName : entitiesName) {
+        for (String entName : this.name) {
             EClass eClass = upperIndex.get(entName);
             if (eClass == null) {
                 continue;
@@ -107,7 +103,6 @@ public class Entity extends Facet {
 
     private boolean predefinedFilter(IdEObject candidate) {
         String val;
-        List<String> predef = extractValue(predefinedType, false);
         List<?> typedBy = asList(candidate, "IsTypedBy");
         if (typedBy != null && !typedBy.isEmpty()) {
             for (Object relObj : typedBy) {
@@ -122,15 +117,15 @@ public class Entity extends Facet {
                 String pt = asString(type, "PredefinedType");
                 if (eq(pt, "USERDEFINED")){
                     val = asString(type, "ElementType");
-                    if(eq(val,predef)) return true;
-                } else if (eq(pt,predef)) {
+                    if(eq(val,this.predefinedType)) return true;
+                } else if (eq(pt,this.predefinedType)) {
                     return true;
                 } else {
-                    if (objType(candidate,predef)) return true;
+                    if (objType(candidate,this.predefinedType)) return true;
                 }
             }
         } else {
-            return objType(candidate, predef);
+            return objType(candidate, this.predefinedType);
         }
         return false;
     }
