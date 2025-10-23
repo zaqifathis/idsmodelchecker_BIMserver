@@ -1,6 +1,7 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
 import de.openfabtwin.bimserver.checkingservice.model.RestrictionValue;
 import de.openfabtwin.bimserver.checkingservice.model.SimpleValue;
+import de.openfabtwin.bimserver.checkingservice.model.Specification;
 import de.openfabtwin.bimserver.checkingservice.model.Value;
 import de.openfabtwin.bimserver.checkingservice.model.result.Result;
 import org.bimserver.emf.IdEObject;
@@ -15,6 +16,9 @@ public abstract class Facet {
     protected Boolean status = null;
     protected Set<IdEObject> passedEntities = new HashSet<>();
     protected List<FacetFailure> failures = new ArrayList<>();
+    protected String applicability_templates;
+    protected String requirement_templates;
+    protected String prohibited_templates;
 
     public enum FacetType {ENTITY, ATTRIBUTE, CLASSIFICATION, PROPERTY, PARTOF, MATERIAL}
     public enum Cardinality {REQUIRED, OPTIONAL, PROHIBITED}
@@ -33,9 +37,12 @@ public abstract class Facet {
         return result;
     }
 
+    protected static String joinValues(List<String> values) {
+        return String.join(", ", values);
+    }
+
     public abstract List<IdEObject> filter(IfcModelInterface model);
     public abstract Result matches(IdEObject element);
-    public abstract FacetType getType();
 
     public static Cardinality cardinalityFromString(String s) {
         if (s == null || s.isBlank()) {
@@ -49,7 +56,28 @@ public abstract class Facet {
         };
     }
 
-    public void to_string() {}
+    public String to_string(String type, Specification specification, Facet requirement) {
+        if ("applicability".equals(type)) {
+            return this.applicability_templates;
+        }
+
+        if ("requirement".equals(type)) {
+            boolean isProhibited =
+                    (specification != null && "0".equals(specification.getMaxOccurs())) ||
+                            (requirement != null && cardinality == Cardinality.PROHIBITED);
+
+            String template = isProhibited ? this.prohibited_templates : this.requirement_templates;
+
+            if (requirement != null && cardinality == Cardinality.OPTIONAL) {
+                template = template.replace("Shall", "May")
+                        .replace("shall", "may")
+                        .replace("must", "may");
+            }
+            return template;
+        }
+
+        return "This facet cannot be interpreted";
+    }
 
     public void addPassedEntities(IdEObject element) {
         this.passedEntities.add(element);
