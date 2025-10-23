@@ -16,23 +16,28 @@ public class Entity extends Facet {
     private final Value name;
     private final Value predefinedType;
     private final String instructions;
-    private final String applicability_templates;
-    private final String requirement_templates;
-    private final String prohibited_templates;
+
 
     public Entity(Value name, Value predefinedType, String instructions) {
         this.name = name;
         this.predefinedType = predefinedType;
         this.instructions = instructions;
-        this.applicability_templates = extractValue(predefinedType, false).isEmpty() ?
-                "All " + name + " data" :
-                "All " + name + " data of type " + extractValue(predefinedType, false);
-        this.requirement_templates = extractValue(predefinedType, false).isEmpty() ?
-                "Shall be " + name + " data" :
-                "Shall be " + name + " data of type " + extractValue(predefinedType, false);
-        this.prohibited_templates = extractValue(predefinedType, false).isEmpty() ?
-                "Shall not be " + name + " data" :
-                "Shall not be " + name + " data of type " + extractValue(predefinedType, false);
+
+        List<String> nameValues = extractValue(name, true);
+        List<String> predefinedValues = extractValue(predefinedType, false);
+        boolean hasPredefined = !predefinedValues.isEmpty();
+        String namePart = joinValues(nameValues);
+        String predefinedPart = joinValues(predefinedValues);
+
+        if (hasPredefined) {
+            this.applicability_templates = "All " + namePart + " data of type " + predefinedPart;
+            this.requirement_templates   = "Shall be " + namePart + " data of type " + predefinedPart;
+            this.prohibited_templates    = "Shall not be " + namePart + " data of type " + predefinedPart;
+        } else {
+            this.applicability_templates = "All " + namePart + " data";
+            this.requirement_templates   = "Shall be " + namePart + " data";
+            this.prohibited_templates    = "Shall not be " + namePart + " data";
+        }
     }
 
     @Override
@@ -179,9 +184,5 @@ public class Entity extends Facet {
         Object v = obj.eGet(f);
         return (v instanceof List<?>) ? (List<?>) v : null;
     }
-
-
-    @Override
-    public FacetType getType(){return FacetType.ENTITY; }
 
 }

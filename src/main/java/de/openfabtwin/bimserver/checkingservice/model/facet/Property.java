@@ -12,9 +12,6 @@ public class Property extends Facet {
     public Property(Value pset, Value baseName, Value value, String dataType, String uri, String cardinality, String instructions){}
 
     @Override
-    public FacetType getType(){return FacetType.PROPERTY; }
-
-    @Override
     public List<IdEObject> filter(IfcModelInterface model) {
         return List.of();
     }

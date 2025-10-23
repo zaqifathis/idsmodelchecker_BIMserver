@@ -3,8 +3,7 @@ package de.openfabtwin.bimserver.checkingservice;
 import de.openfabtwin.bimserver.checkingservice.model.Ids;
 import de.openfabtwin.bimserver.checkingservice.model.IdsMapper;
 import de.openfabtwin.bimserver.checkingservice.report.Reporter;
-import de.openfabtwin.bimserver.checkingservice.report.Results;
-import org.bimserver.emf.IdEObject;
+import de.openfabtwin.bimserver.checkingservice.report.TextReport;
 import org.bimserver.emf.IfcModelInterface;
 import org.bimserver.interfaces.objects.SObjectType;
 import org.bimserver.interfaces.objects.SProject;
@@ -59,10 +58,11 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
         IfcModelInterface model = bimServerClientInterface.getModel(project, roid, true, false);
 
         ids.validate(project, model);
-        LOGGER.info("Validation completed.");
-        String txtReport = "WIP";
+        TextReport report = new TextReport(ids);
+        report.report();
+        String txtReport = report.to_string();
 
-        addExtendedData(txtReport.getBytes(), "result.txt", "IDS Model Checker Report", "text/plain", bimServerClientInterface, roid);
+        addExtendedData(txtReport.getBytes(), "result.txt", "IDS Report", "text/plain", bimServerClientInterface, roid);
     }
 
     @Override

@@ -31,15 +31,15 @@ public class Specification {
     private Boolean status = null;
     private Boolean is_ifc_version_supported = null;
 
-    private void check_ifc_version(SProject project) {
+    private boolean check_ifc_version(SProject project) {
         String projectSchema = project.getSchema().toUpperCase();
         if (projectSchema.equals("IFC2X3TC1")) projectSchema = "IFC2X3";
         is_ifc_version_supported = ifcVersion.contains(ifcVersionFromString(projectSchema));
+        return is_ifc_version_supported;
     }
 
     public void validate(SProject project, IfcModelInterface model) {
-        check_ifc_version(project);
-        if (!is_ifc_version_supported) return;
+        if(!check_ifc_version(project)) return;
 
         // Applicability
         if (this.applicability.isEmpty()) return;
@@ -53,7 +53,7 @@ public class Specification {
             boolean isApplicable = true;
             for (Facet f : this.applicability) {
                 if (f == facet) continue;
-                if (f.matches(element).isPass()) {
+                if (!f.matches(element).isPass()) {
                     isApplicable = false;
                     break;
                 }
@@ -98,6 +98,8 @@ public class Specification {
             } else if ("0".equals(this.maxOccurs)) { //prohibited specification
                 if (!this.applicable_entities.isEmpty() && this.requirements.isEmpty()) this.status = false;
             }
+
+            LOGGER.info("Specification '{}' validated. Status: {}", this.name, this.status ? "PASS" : "FAIL");
         }
     }
 
@@ -113,6 +115,8 @@ public class Specification {
     public List<IdEObject> getFailed_entities() { return failed_entities; }
     public boolean getStatus() { return status; }
     public boolean getIs_ifc_version_supported() { return is_ifc_version_supported; }
+    public String getMinOccurs() { return minOccurs; }
+    public String getMaxOccurs() { return maxOccurs; }
 
     public void setName(String name) {
         this.name = (name == null || name.isBlank()) ? "Unnamed" : name;
