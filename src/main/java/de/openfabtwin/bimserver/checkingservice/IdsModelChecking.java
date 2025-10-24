@@ -46,23 +46,22 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
 
         final String URL_IDS = runningService.getPluginConfiguration().getString("IdsFile");
 
+        String report = null;
         if (URL_IDS == null || URL_IDS.isEmpty() || !URL_IDS.toLowerCase().endsWith(".ids")) {
-            String report = "Missing or invalid IDS URL.";
-            addExtendedData(report.getBytes(), "result.txt", "IdsCheckerReport_Test", "text/plain", bimServerClientInterface, roid);
-            return;
+            report = "Missing or invalid IDS URL.";
+        } else {
+            Ids ids = IdsMapper.read(URL_IDS);
+
+            SProject project = bimServerClientInterface.getServiceInterface().getProjectByPoid(poid);
+            IfcModelInterface model = bimServerClientInterface.getModel(project, roid, true, false);
+
+            ids.validate(project, model);
+            TextReport txtReport = new TextReport(ids);
+            txtReport.report();
+            report = txtReport.to_string();
         }
 
-        Ids ids = IdsMapper.read(URL_IDS);
-
-        SProject project = bimServerClientInterface.getServiceInterface().getProjectByPoid(poid);
-        IfcModelInterface model = bimServerClientInterface.getModel(project, roid, true, false);
-
-        ids.validate(project, model);
-        TextReport report = new TextReport(ids);
-        report.report();
-        String txtReport = report.to_string();
-
-        addExtendedData(txtReport.getBytes(), "result.txt", "IDS Report", "text/plain", bimServerClientInterface, roid);
+        addExtendedData(report.getBytes(), "result.txt", "IDS Report", "text/plain", bimServerClientInterface, roid);
     }
 
     @Override
