@@ -59,7 +59,7 @@ public class Entity extends Facet {
     }
 
     @Override
-    public List<IdEObject> filter(IfcModelInterface model) { //TODO: optimize
+    public List<IdEObject> filter(IfcModelInterface model) {
         List<IdEObject> candidates = new ArrayList<>();
         var meta = model.getPackageMetaData();
         var epkg = meta.getEPackage();
@@ -114,14 +114,6 @@ public class Entity extends Facet {
 
     private static boolean eq(String a, String b) {
         return a != null && a.equals(b);
-    }
-
-    private static boolean eq(String a, List<String> bs) {
-        if (a == null || bs == null || bs.isEmpty()) return false;
-        for (String b: bs) {
-            if (a.equals(b)) return true;
-        }
-        return false;
     }
 
     private boolean objType (IdEObject obj) {

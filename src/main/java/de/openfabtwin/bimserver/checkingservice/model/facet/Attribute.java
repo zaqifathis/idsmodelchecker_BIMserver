@@ -1,11 +1,15 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
 
+import de.openfabtwin.bimserver.checkingservice.model.SimpleValue;
 import de.openfabtwin.bimserver.checkingservice.model.Value;
 import de.openfabtwin.bimserver.checkingservice.model.result.Result;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
+import org.eclipse.emf.ecore.EAttribute;
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EClassifier;
 
-import java.util.List;
+import java.util.*;
 
 public class Attribute extends Facet {
     private final Value name;
@@ -32,11 +36,48 @@ public class Attribute extends Facet {
 
     @Override
     public List<IdEObject> filter(IfcModelInterface model) {
-        return List.of();
+        List<IdEObject> candidates = new ArrayList<>();
+        var meta = model.getPackageMetaData();
+        var epkg = meta.getEPackage();
+
+        Set<Long> seen = new HashSet<>();
+        for (EClassifier c : epkg.getEClassifiers()) {
+            if (!(c instanceof EClass ec)) continue;
+
+            boolean declaresMatch = ec.getEAttributes()
+                    .stream()
+                    .map((EAttribute f) -> f.getName())
+                    .anyMatch(attrName  -> name.matches(attrName ));
+
+            if (declaresMatch) {
+                for (IdEObject e : model.getAllWithSubTypes(ec)) {
+                    if (seen.add(e.getOid())) candidates.add(e);
+                }
+            }
+        }
+        if (this.value == null) return candidates;
+
+        //if it has value, name always SimpleValue
+        List<IdEObject> result = new ArrayList<>();
+        String attrName = name.extract();
+
+        for (IdEObject candidate : candidates) {
+            Object attrValue = candidate.eGet(candidate.eClass().getEStructuralFeature(attrName));
+            if (attrValue != null) {
+                String attrValueStr = attrValue.toString();
+                if (value.matches(attrValueStr)) {
+                    result.add(candidate);
+                }
+            }
+        }
+
+        return result;
     }
 
     @Override
-    public Result matches(IdEObject element) {return null;}
+    public Result matches(IdEObject element) {
 
+        return null;
+    }
 
 }
