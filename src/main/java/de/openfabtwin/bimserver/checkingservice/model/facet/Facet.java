@@ -19,10 +19,6 @@ public abstract class Facet {
 
     public enum Cardinality {REQUIRED, OPTIONAL, PROHIBITED}
 
-    protected static String joinValues(List<String> values) {
-        return String.join(", ", values);
-    }
-
     public abstract List<IdEObject> filter(IfcModelInterface model);
     public abstract Result matches(IdEObject element);
 
