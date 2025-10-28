@@ -1,8 +1,5 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
-import de.openfabtwin.bimserver.checkingservice.model.RestrictionValue;
-import de.openfabtwin.bimserver.checkingservice.model.SimpleValue;
 import de.openfabtwin.bimserver.checkingservice.model.Specification;
-import de.openfabtwin.bimserver.checkingservice.model.Value;
 import de.openfabtwin.bimserver.checkingservice.model.result.Result;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
@@ -20,22 +17,7 @@ public abstract class Facet {
     protected String requirement_templates;
     protected String prohibited_templates;
 
-    public enum FacetType {ENTITY, ATTRIBUTE, CLASSIFICATION, PROPERTY, PARTOF, MATERIAL}
     public enum Cardinality {REQUIRED, OPTIONAL, PROHIBITED}
-
-    protected static List<String> extractValue(Value name, boolean checkUpperCase) {
-        List<String> result = new ArrayList<>();
-        if (name instanceof SimpleValue sv) result = List.of(sv.value());
-        else if (name instanceof RestrictionValue rv) result = rv.enums();
-
-        if (checkUpperCase) {
-            boolean allUppercase = result.stream()
-                    .filter(Objects::nonNull)
-                    .allMatch(s -> s.equals(s.toUpperCase()));
-            if (!allUppercase) return List.of();
-        }
-        return result;
-    }
 
     protected static String joinValues(List<String> values) {
         return String.join(", ", values);

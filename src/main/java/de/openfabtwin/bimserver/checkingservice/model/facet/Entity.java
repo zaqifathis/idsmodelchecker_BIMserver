@@ -7,7 +7,6 @@ import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
-import org.eclipse.emf.ecore.EPackage;
 
 import java.util.*;
 
@@ -23,35 +22,27 @@ public class Entity extends Facet {
         this.predefinedType = predefinedType;
         this.instructions = instructions;
 
-        List<String> nameValues = extractValue(name, true);
-        List<String> predefinedValues = extractValue(predefinedType, false);
-        boolean hasPredefined = !predefinedValues.isEmpty();
-        String namePart = joinValues(nameValues);
-        String predefinedPart = joinValues(predefinedValues);
-
-        if (hasPredefined) {
-            this.applicability_templates = "All " + namePart + " data of type " + predefinedPart;
-            this.requirement_templates   = "Shall be " + namePart + " data of type " + predefinedPart;
-            this.prohibited_templates    = "Shall not be " + namePart + " data of type " + predefinedPart;
+        if (predefinedType == null) {
+            this.applicability_templates = "All " + name.extract() + " data";
+            this.requirement_templates   = "Shall be " + name.extract() + " data";
+            this.prohibited_templates    = "Shall not be " + name.extract() + " data";
         } else {
-            this.applicability_templates = "All " + namePart + " data";
-            this.requirement_templates   = "Shall be " + namePart + " data";
-            this.prohibited_templates    = "Shall not be " + namePart + " data";
+            this.applicability_templates = "All " + name.extract() + " data of type " + predefinedType.extract();
+            this.requirement_templates   = "Shall be " + name.extract() + " data of type " + predefinedType.extract();
+            this.prohibited_templates    = "Shall not be " + name.extract() + " data of type " + predefinedType.extract();
         }
     }
 
     @Override
     public Result matches(IdEObject element) {
-        List<String> entitiesName = extractValue(name, true);
         String entName = element.eClass().getName().toUpperCase(Locale.ROOT);
+        boolean isPass = name != null && name.matches(entName);
 
         Map<String, Object> reason = null;
-        boolean isPass = entitiesName.contains(entName);
-
         if (!isPass) {
             reason = Map.of(
                     "type", "NAME",
-                    "actual",entName
+                    "actual",name.extract()
             );
         }
         if (isPass && this.predefinedType != null) {
@@ -60,7 +51,7 @@ public class Entity extends Facet {
             if (!isPass) {
                 reason = Map.of(
                         "type", "PREDEFINEDTYPE",
-                        "actual", extractValue(this.predefinedType, false)
+                        "actual", predefinedType.extract()
                 );
             }
         }
@@ -68,26 +59,23 @@ public class Entity extends Facet {
     }
 
     @Override
-    public List<IdEObject> filter(IfcModelInterface model) {
+    public List<IdEObject> filter(IfcModelInterface model) { //TODO: optimize
         List<IdEObject> candidates = new ArrayList<>();
-        List<String> entitiesName = extractValue(name, true);
-        if (entitiesName.isEmpty()) return candidates;
-
         var meta = model.getPackageMetaData();
-        Map<String, EClass> upperIndex = buildUpperIndex(meta.getEPackage());
-
+        var epkg = meta.getEPackage();
         Set<Long> seen = new HashSet<>();
-        for (String entName : entitiesName) {
-            EClass eClass = upperIndex.get(entName);
-            if (eClass == null) {
-                continue;
-            }
-            for (IdEObject e : model.getAllWithSubTypes(eClass)) {
-                if (seen.add(e.getOid())) candidates.add(e);
+        for (EClassifier c : epkg.getEClassifiers()) {
+            if (c instanceof EClass ec) {
+                String className = ec.getName().toUpperCase(Locale.ROOT);
+                if (name.matches(className)) {
+                    for (IdEObject e : model.getAllWithSubTypes(ec)) {
+                        if(seen.add(e.getOid())) candidates.add(e);
+                    }
+                }
             }
         }
-
         if (this.predefinedType == null) return candidates;
+
         List<IdEObject> result = new ArrayList<>();
         for (IdEObject candidate : candidates) {
             if(predefinedFilter(candidate)) result.add(candidate);
@@ -95,19 +83,8 @@ public class Entity extends Facet {
         return result;
     }
 
-    private static Map<String, EClass> buildUpperIndex(EPackage pkg) {
-        Map<String, EClass> index = new HashMap<>();
-        for (EClassifier c : pkg.getEClassifiers()) {
-            if (c instanceof EClass ec) {
-                index.put(ec.getName().toUpperCase(Locale.ROOT), ec);
-            }
-        }
-        return index;
-    }
-
     private boolean predefinedFilter(IdEObject candidate) {
         String val;
-        List<String> predef = extractValue(predefinedType, false);
         List<?> typedBy = asList(candidate, "IsTypedBy");
         if (typedBy != null && !typedBy.isEmpty()) {
             for (Object relObj : typedBy) {
@@ -122,15 +99,15 @@ public class Entity extends Facet {
                 String pt = asString(type, "PredefinedType");
                 if (eq(pt, "USERDEFINED")){
                     val = asString(type, "ElementType");
-                    if(eq(val,predef)) return true;
-                } else if (eq(pt,predef)) {
+                    if(predefinedType.matches(val)) return true;
+                } else if (predefinedType.matches(pt)) {
                     return true;
                 } else {
-                    if (objType(candidate,predef)) return true;
+                    if (objType(candidate)) return true;
                 }
             }
         } else {
-            return objType(candidate, predef);
+            return objType(candidate);
         }
         return false;
     }
@@ -147,13 +124,13 @@ public class Entity extends Facet {
         return false;
     }
 
-    private boolean objType (IdEObject obj,List<String> predefinedTypes) {
+    private boolean objType (IdEObject obj) {
         String pdef = asString(obj,"PredefinedType");
         if (eq(pdef, "USERDEFINED")) {
             String val = asString(obj,"ObjectType");
-            if (eq(val, predefinedTypes)) return true;
+            if (predefinedType.matches(val)) return true;
         } //6th check
-        return eq(pdef, predefinedTypes);
+        return predefinedType.matches(pdef);
     }
 
     private static String asString(IdEObject obj, String featName) {
@@ -167,7 +144,6 @@ public class Entity extends Facet {
         if (v == null) return null;
         String s = v.toString().trim();
         if (s.isEmpty()) return null;
-        if ("UNSET".equalsIgnoreCase(s)) return null;
         return s;
     }
 

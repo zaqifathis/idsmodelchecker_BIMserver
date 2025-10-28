@@ -34,8 +34,8 @@ public class Specification {
     private boolean check_ifc_version(SProject project) {
         String projectSchema = project.getSchema().toUpperCase();
         if (projectSchema.equals("IFC2X3TC1")) projectSchema = "IFC2X3";
-        is_ifc_version_supported = ifcVersion.contains(ifcVersionFromString(projectSchema));
-        return is_ifc_version_supported;
+        this.is_ifc_version_supported = ifcVersion.contains(ifcVersionFromString(projectSchema));
+        return this.is_ifc_version_supported;
     }
 
     public void validate(SProject project, IfcModelInterface model) {
@@ -98,9 +98,9 @@ public class Specification {
             } else if ("0".equals(this.maxOccurs)) { //prohibited specification
                 if (!this.applicable_entities.isEmpty() && this.requirements.isEmpty()) this.status = false;
             }
-
-            LOGGER.info("Specification '{}' validated. Status: {}", this.name, this.status ? "PASS" : "FAIL");
         }
+        LOGGER.info("Specification '{}' validated. Status: {}", this.name, this.status ? "PASS" : "FAIL");
+
     }
 
 

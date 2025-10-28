@@ -12,24 +12,22 @@ public class Attribute extends Facet {
     private final Value value;
     private Cardinality cardinality;
     private final String instructions;
-    private final String applicability_templates;
-    private final String requirement_templates;
-    private final String prohibited_templates;
 
     public Attribute(Value name, Value value, String cardinality, String instructions){
         this.name = name;
         this.value = value;
         this.cardinality = cardinalityFromString(cardinality);
         this.instructions = instructions;
-        this.applicability_templates = extractValue(value, false).isEmpty() ?
-                "Data where the " + name + " is provided" :
-                "Data where the " + name + " is " + extractValue(value, false);
-        this.requirement_templates = extractValue(value, false).isEmpty() ?
-                "The " + name + " shall be provided" :
-                "The " + name + " shall be " + extractValue(value, false);
-        this.prohibited_templates = extractValue(value, false).isEmpty() ?
-                "The " + name + " shall not be provided" :
-                "The " + name + " shall not be " + extractValue(value, false);
+
+        if (value == null) {
+            this.applicability_templates = "Data where the " + name.extract() + " is provided";
+            this.requirement_templates = "The " + name.extract() + " shall be provided";
+            this.prohibited_templates = "The " + name.extract() + " shall not be provided";
+        } else {
+            this.applicability_templates = "Data where the " + name + " is " + value.extract();
+            this.requirement_templates = "The " + name + " shall be " + value.extract();
+            this.prohibited_templates = "The " + name + " shall not be " + value.extract();
+        }
     }
 
     @Override

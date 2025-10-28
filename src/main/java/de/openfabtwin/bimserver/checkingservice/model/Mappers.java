@@ -6,6 +6,7 @@ import de.openfabtwin.bimserver.checkingservice.model.facet.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 public class Mappers {
 
@@ -130,7 +131,6 @@ public class Mappers {
         );
     }
 
-
     //helpers for value/restriction
     private static String up(String s) { return s == null ? null : s.trim().toUpperCase(); }
     private static String defCard(String c) { return (c == null || c.isBlank()) ? "required" : c; }
@@ -140,10 +140,22 @@ public class Mappers {
         if (v.simpleValue != null) return new SimpleValue(v.simpleValue);
 
         if (v.restriction != null) {
+            RestrictionValue.XsdBase base = RestrictionValue.xsdBaseFromString(v.restriction.base);
             List<String> enums = new ArrayList<>();
+            String pattern = null;
+            String minInclusive = null;
+            String maxInclusive= null;
+            String minExclusive= null;
+            String maxExclusive= null;
             if (v.restriction.enumeration != null) for (IdsXml.EnumFacetXml e : v.restriction.enumeration) enums.add(e.value);
-            //String pattern = v.restriction.pattern.value != null ? v.restriction.pattern.value : null; TODO: next add pattern
-            return new RestrictionValue(enums);
+            if (v.restriction.pattern != null) { pattern = v.restriction.pattern.value; }
+            if (v.restriction.minExclusive != null) {
+                minExclusive = v.restriction.minExclusive.value;
+                maxInclusive = v.restriction.maxInclusive.value;
+                minExclusive = v.restriction.minExclusive.value;
+                maxExclusive = v.restriction.maxExclusive.value;
+            }
+            return new RestrictionValue(base, enums, pattern, minInclusive, maxInclusive, minExclusive, maxExclusive);
         }
         return null;
     }

@@ -2,7 +2,6 @@ package de.openfabtwin.bimserver.checkingservice;
 
 import de.openfabtwin.bimserver.checkingservice.model.Ids;
 import de.openfabtwin.bimserver.checkingservice.model.IdsMapper;
-import de.openfabtwin.bimserver.checkingservice.report.Reporter;
 import de.openfabtwin.bimserver.checkingservice.report.TextReport;
 import org.bimserver.emf.IfcModelInterface;
 import org.bimserver.interfaces.objects.SObjectType;
@@ -15,8 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class IdsModelChecking extends AbstractAddExtendedDataService {
-    Logger LOGGER = LoggerFactory.getLogger(IdsModelChecking.class);
-
     public IdsModelChecking() {
         super(SchemaName.UNSTRUCTURED_UTF8_TEXT_1_0.name());
     }

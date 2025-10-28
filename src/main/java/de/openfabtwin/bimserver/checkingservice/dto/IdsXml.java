@@ -4,6 +4,7 @@ import javax.xml.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @XmlRootElement(name = "ids")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -193,6 +194,18 @@ public class IdsXml {
 
         @XmlElement(name = "pattern", namespace = "http://www.w3.org/2001/XMLSchema")
         public PatternFacetXml pattern;
+
+        @XmlElement(name = "minInclusive", namespace = "http://www.w3.org/2001/XMLSchema")
+        public BoundFacetXml minInclusive;
+
+        @XmlElement(name = "maxInclusive", namespace = "http://www.w3.org/2001/XMLSchema")
+        public BoundFacetXml maxInclusive;
+
+        @XmlElement(name = "minExclusive", namespace = "http://www.w3.org/2001/XMLSchema")
+        public BoundFacetXml minExclusive;
+
+        @XmlElement(name = "maxExclusive", namespace = "http://www.w3.org/2001/XMLSchema")
+        public BoundFacetXml maxExclusive;
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)
@@ -203,6 +216,12 @@ public class IdsXml {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class PatternFacetXml {
         @XmlAttribute(name = "value") public String value;
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class BoundFacetXml {
+        @XmlAttribute(name = "value")
+        public String value;
     }
 
 
