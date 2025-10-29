@@ -15,6 +15,7 @@ public class Entity extends Facet {
     private final Value name;
     private final Value predefinedType;
     private final String instructions;
+    private String actualPredefVal = "";
 
 
     public Entity(Value name, Value predefinedType, String instructions) {
@@ -42,7 +43,7 @@ public class Entity extends Facet {
         if (!isPass) {
             reason = Map.of(
                     "type", "NAME",
-                    "actual",name.extract()
+                    "actual",entName
             );
         }
         if (isPass && this.predefinedType != null) {
@@ -51,7 +52,7 @@ public class Entity extends Facet {
             if (!isPass) {
                 reason = Map.of(
                         "type", "PREDEFINEDTYPE",
-                        "actual", predefinedType.extract()
+                        "actual", actualPredefVal
                 );
             }
         }
@@ -99,6 +100,7 @@ public class Entity extends Facet {
                 String pt = asString(type, "PredefinedType");
                 if (eq(pt, "USERDEFINED")){
                     val = asString(type, "ElementType");
+                    actualPredefVal = val;
                     if(predefinedType.matches(val)) return true;
                 } else if (predefinedType.matches(pt)) {
                     return true;
@@ -120,8 +122,10 @@ public class Entity extends Facet {
         String pdef = asString(obj,"PredefinedType");
         if (eq(pdef, "USERDEFINED")) {
             String val = asString(obj,"ObjectType");
+            actualPredefVal = val;
             if (predefinedType.matches(val)) return true;
         } //6th check
+        actualPredefVal = pdef;
         return predefinedType.matches(pdef);
     }
 
