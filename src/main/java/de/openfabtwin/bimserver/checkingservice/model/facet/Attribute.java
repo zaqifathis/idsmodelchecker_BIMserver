@@ -44,34 +44,19 @@ public class Attribute extends Facet {
         for (EClassifier c : epkg.getEClassifiers()) {
             if (!(c instanceof EClass ec)) continue;
 
-            boolean declaresMatch = ec.getEAttributes()
-                    .stream()
-                    .map((EAttribute f) -> f.getName())
-                    .anyMatch(attrName  -> name.matches(attrName ));
-
-            if (declaresMatch) {
-                for (IdEObject e : model.getAllWithSubTypes(ec)) {
-                    if (seen.add(e.getOid())) candidates.add(e);
+            for (EAttribute eAttr : ec.getEAttributes()) {
+                if (!name.matches(eAttr.getName())) continue;
+                for (IdEObject inst : model.getAllWithSubTypes(ec)) {
+                    Object raw = inst.eGet(eAttr);
+                    if (raw != null) {
+                        if (!seen.add(inst.getOid())) candidates.add(inst);
+                    }
                 }
+                break;
             }
         }
-        if (this.value == null) return candidates;
-
-        //if it has value, name always SimpleValue
-        List<IdEObject> result = new ArrayList<>();
-        String attrName = name.extract();
-
-        for (IdEObject candidate : candidates) {
-            Object attrValue = candidate.eGet(candidate.eClass().getEStructuralFeature(attrName));
-            if (attrValue != null) {
-                String attrValueStr = attrValue.toString();
-                if (value.matches(attrValueStr)) {
-                    result.add(candidate);
-                }
-            }
-        }
-
-        return result;
+        // future: consider check value as well
+        return candidates;
     }
 
     @Override
