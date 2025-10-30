@@ -58,8 +58,8 @@ public class TextReport extends Reporter {
     }
 
     private void reportReason(FacetFailure failure) {
-        print(failure.getReason());
-//        print(" - " + failure.getElement().eClass().getName().toUpperCase());
+        print(failure.getReason(), "");
+        print(" - guid: " + failure.getElement().getUuid());
     }
 
     private void print(String line) {

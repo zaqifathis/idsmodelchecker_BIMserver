@@ -5,14 +5,16 @@ import de.openfabtwin.bimserver.checkingservice.model.result.AttributeResult;
 import de.openfabtwin.bimserver.checkingservice.model.result.Result;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
-import org.eclipse.emf.ecore.EAttribute;
-import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EClassifier;
+import org.eclipse.emf.ecore.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Array;
 import java.util.*;
 
 public class Attribute extends Facet {
+    Logger LOGGER = LoggerFactory.getLogger(Attribute.class);
+
     private final Value name;
     private final Value value;
     private Cardinality cardinality;
@@ -45,8 +47,13 @@ public class Attribute extends Facet {
         for (EClassifier c : epkg.getEClassifiers()) {
             if (!(c instanceof EClass ec)) continue;
 
-            for (EAttribute eAttr : ec.getEAttributes()) {
+            for (EStructuralFeature eAttr : ec.getEAllStructuralFeatures()) {
                 if (!name.matches(eAttr.getName())) continue;
+
+                if (eAttr instanceof EReference ref) { // keep only forward features
+                    if (ref.isDerived()) continue;
+                }
+
                 for (IdEObject inst : model.getAllWithSubTypes(ec)) {
                     Object raw = inst.eGet(eAttr);
                     if (raw != null) {
@@ -63,11 +70,15 @@ public class Attribute extends Facet {
     @Override
     public Result matches(IdEObject element) {
 
-        List<EAttribute> features = new ArrayList<>();
-        for (EAttribute a : element.eClass().getEAllAttributes()) {
-            if (name.matches(a.getName())) {
-                features.add(a);
+        List<EStructuralFeature> features = new ArrayList<>();
+
+        for (EStructuralFeature f : element.eClass().getEAllStructuralFeatures()) {
+            if (!name.matches(f.getName())) continue;
+
+            if (f instanceof EReference ref) { // keep only forward features
+                if (ref.isDerived()) continue;
             }
+            features.add(f);
         }
 
         return switch (this.cardinality) {
@@ -77,11 +88,11 @@ public class Attribute extends Facet {
         };
     }
 
-    private Result evalProhibited(IdEObject element, List<EAttribute> attributes) {
+    private Result evalProhibited(IdEObject element, List<EStructuralFeature> attributes) {
         if(attributes.isEmpty()) {
             return pass();
         } else {
-            for (EAttribute attr: attributes) {
+            for (EStructuralFeature attr: attributes) {
                 Object raw = element.eGet(attr);
                 if(isPresent(raw, attr)) return fail("PROHIBITED");
             }
@@ -89,10 +100,10 @@ public class Attribute extends Facet {
         }
     }
 
-    private Result evalOptional(IdEObject element, List<EAttribute> attributes) {
+    private Result evalOptional(IdEObject element, List<EStructuralFeature> attributes) {
         if(attributes.isEmpty()) return pass();
 
-        for (EAttribute attr: attributes) {
+        for (EStructuralFeature attr: attributes) {
             Object raw = element.eGet(attr);
             if(!isPresent(raw, attr)) continue;
             if (!isActualValue(raw)) return fail(Map.of(
@@ -109,10 +120,10 @@ public class Attribute extends Facet {
         return pass();
     }
 
-    private Result evalRequired(IdEObject element, List<EAttribute> attributes) {
+    private Result evalRequired(IdEObject element, List<EStructuralFeature> attributes) {
         if (attributes.isEmpty()) return fail("NOVALUE");
 
-        for(EAttribute attr : attributes) {
+        for(EStructuralFeature attr : attributes) {
             Object raw = element.eGet(attr);
             if(!isPresent(raw, attr)) return fail("NOVALUE");
             if (!isActualValue(raw)) return fail(Map.of(
@@ -129,7 +140,7 @@ public class Attribute extends Facet {
         return pass();
     }
 
-    private boolean isPresent(Object raw, EAttribute attr) {
+    private boolean isPresent(Object raw, EStructuralFeature attr) {
         if (raw == null) return false;
 
         if(attr.isMany()) {
@@ -140,19 +151,31 @@ public class Attribute extends Facet {
     }
 
     private boolean isActualValue(Object raw) {
-        if (raw instanceof IdEObject) return false;
+        if (raw instanceof IdEObject) return true;
+
         if (raw instanceof CharSequence cs) {
-            return !cs.toString().trim().isEmpty();
+            String s = cs.toString().trim();
+            if (s.isEmpty()) return false;
+            return true;
         }
+
         if (raw instanceof Enum<?> en) {
-            return !"UNKNOWN".equalsIgnoreCase(en.name());
+            String n = en.name();
+            if ("UNKNOWN".equalsIgnoreCase(n) || "UNDEFINED".equalsIgnoreCase(n)) return false;
+            return true;
         }
-        if (raw instanceof Collection<?> col) {
-            return !col.isEmpty();
-        }
-        if (raw.getClass().isArray()) {
-            return Array.getLength(raw) > 0;
-        }
+
+        try {
+            var getName = raw.getClass().getMethod("getName");
+            Object n = getName.invoke(raw);
+            if (n instanceof String s && (s.equalsIgnoreCase("UNKNOWN") || s.equalsIgnoreCase("UNDEFINED")))
+                return false;
+        } catch (Exception ignored) { }
+
+        String str = raw.toString().trim();
+        if (str.equalsIgnoreCase("UNKNOWN") || str.equalsIgnoreCase("UNDEFINED")) return false;
+        if (raw instanceof Collection<?> col) return !col.isEmpty();
+        if (raw.getClass().isArray()) return Array.getLength(raw) > 0;
         return true;
     }
 

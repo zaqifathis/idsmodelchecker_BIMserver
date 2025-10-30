@@ -24,7 +24,7 @@ public abstract class Facet {
 
     public static Cardinality cardinalityFromString(String s) {
         if (s == null || s.isBlank()) {
-            return null;
+            return REQUIRED;
         }
         return switch (s.trim().toLowerCase()) {
             case "required" -> REQUIRED;
