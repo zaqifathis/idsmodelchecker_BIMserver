@@ -21,6 +21,7 @@ public record RestrictionValue(XsdBase base, List<String> enums, String pattern,
     @Override
     public boolean matches (String candidate) {
         if (candidate == null) return false;
+        candidate = candidate.trim();
 
         // Check enum first
         if (enums != null && !enums.isEmpty()) {

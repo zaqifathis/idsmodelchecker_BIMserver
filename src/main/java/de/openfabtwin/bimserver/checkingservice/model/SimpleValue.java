@@ -30,11 +30,12 @@ public record SimpleValue(String value) implements Value {
         if (candidate == null) return false;
 
         String c = candidate.trim();
+        String v = value == null ? "" : value.trim();
         return switch (type()) {
-            case BOOLEAN -> equalsBoolean(value, c);
-            case INTEGER -> equalsAsBigDecimal(value, c, true);
-            case DOUBLE  -> equalsAsBigDecimal(value, c, false);
-            case STRING  -> c.equals(value);
+            case BOOLEAN -> equalsBoolean(v, c);
+            case INTEGER -> equalsAsBigDecimal(v, c, true);
+            case DOUBLE  -> equalsAsBigDecimal(v, c, false);
+            case STRING  -> c.equals(v);
         };
     }
 

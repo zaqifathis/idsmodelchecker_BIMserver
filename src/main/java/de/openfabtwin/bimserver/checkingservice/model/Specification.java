@@ -58,28 +58,31 @@ public class Specification {
                     break;
                 }
             }
-            if (!isApplicable) continue;
-            this.applicable_entities.add(element);
-            for(Facet f : this.requirements) {
-                Result result = f.matches(element);
-                boolean is_pass = result.isPass();
-                if (!"0".equals(this.maxOccurs)) { //required or optional
-                    if (is_pass) {
-                        this.passed_entities.add(element);
-                        f.addPassedEntities(element);
-                    } else {
-                        this.failed_entities.add(element);
-                        f.addFailures(element, result.to_String());
-                    }
-                } else { //prohibited
-                    if (is_pass) {
-                        this.failed_entities.add(element);
-                        f.addFailures(element, result.to_String());
-                    } else {
-                        this.passed_entities.add(element);
-                        f.addPassedEntities(element);
+            if (isApplicable) {
+                this.applicable_entities.add(element);
+                for(Facet f : this.requirements) {
+                    Result result = f.matches(element);
+                    boolean is_pass = result.isPass();
+                    if (!"0".equals(this.maxOccurs)) { //required or optional
+                        if (is_pass) {
+                            this.passed_entities.add(element);
+                            f.addPassedEntities(element);
+                        } else {
+                            this.failed_entities.add(element);
+                            f.addFailures(element, result.to_String());
+                        }
+                    } else { //prohibited
+                        if (is_pass) {
+                            this.failed_entities.add(element);
+                            f.addFailures(element, result.to_String());
+                        } else {
+                            this.passed_entities.add(element);
+                            f.addPassedEntities(element);
+                        }
                     }
                 }
+            } else {
+                continue;
             }
 
             this.status = true;
