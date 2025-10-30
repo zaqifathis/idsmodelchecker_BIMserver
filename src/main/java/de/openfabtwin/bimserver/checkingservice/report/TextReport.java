@@ -59,7 +59,7 @@ public class TextReport extends Reporter {
 
     private void reportReason(FacetFailure failure) {
         print(failure.getReason(), "");
-        print(" - guid: " + failure.getElement().getUuid());
+        print(" - oid: " + failure.getElement().getOid());
     }
 
     private void print(String line) {
