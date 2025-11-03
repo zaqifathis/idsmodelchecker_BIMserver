@@ -3,12 +3,16 @@ import de.openfabtwin.bimserver.checkingservice.model.Specification;
 import de.openfabtwin.bimserver.checkingservice.model.result.Result;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 import static de.openfabtwin.bimserver.checkingservice.model.facet.Facet.Cardinality.*;
 
 public abstract class Facet {
+    Logger LOGGER = LoggerFactory.getLogger(Facet.class);
+
     protected Cardinality cardinality = REQUIRED;
     protected Boolean status = null;
     protected Set<IdEObject> passedEntities = new HashSet<>();
@@ -42,11 +46,10 @@ public abstract class Facet {
         if ("requirement".equals(type)) {
             boolean isProhibited =
                     (specification != null && "0".equals(specification.getMaxOccurs())) ||
-                            (requirement != null && cardinality == Cardinality.PROHIBITED);
-
+                            (requirement != null && requirement.cardinality == Cardinality.PROHIBITED);
             String template = isProhibited ? this.prohibited_templates : this.requirement_templates;
 
-            if (requirement != null && cardinality == Cardinality.OPTIONAL) {
+            if (requirement != null && requirement.cardinality == Cardinality.OPTIONAL) {
                 template = template.replace("Shall", "May")
                         .replace("shall", "may")
                         .replace("must", "may");
@@ -75,6 +78,36 @@ public abstract class Facet {
 
     public boolean isStatus(){
         return this.status;
+    }
+
+    // ---- helper ----
+
+    public static String getString(IdEObject obj, String featName) {
+        var f = obj.eClass().getEStructuralFeature(featName);
+        if (f == null) return null;
+        Object v = obj.eGet(f);
+        return normalizeEnumLike(v);
+    }
+
+    private static String normalizeEnumLike(Object v) {
+        if (v == null) return null;
+        String s = v.toString().trim();
+        if (s.isEmpty()) return null;
+        return s;
+    }
+
+    public static IdEObject getObject(IdEObject obj, String featName) {
+        var f = obj.eClass().getEStructuralFeature(featName);
+        if (f == null) return null;
+        Object v = obj.eGet(f);
+        return (v instanceof IdEObject) ? (IdEObject) v : null;
+    }
+
+    public static List<?> getList(IdEObject obj, String featName) {
+        var f = obj.eClass().getEStructuralFeature(featName);
+        if (f == null) return null;
+        Object v = obj.eGet(f);
+        return (v instanceof List<?>) ? (List<?>) v : null;
     }
 }
 

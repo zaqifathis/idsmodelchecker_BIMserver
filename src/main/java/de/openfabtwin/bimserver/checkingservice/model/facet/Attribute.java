@@ -6,18 +6,14 @@ import de.openfabtwin.bimserver.checkingservice.model.result.Result;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 import org.eclipse.emf.ecore.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Array;
 import java.util.*;
 
 public class Attribute extends Facet {
-    Logger LOGGER = LoggerFactory.getLogger(Attribute.class);
 
     private final Value name;
     private final Value value;
-    private Cardinality cardinality;
     private final String instructions;
 
     public Attribute(Value name, Value value, String cardinality, String instructions){
@@ -177,6 +173,10 @@ public class Attribute extends Facet {
         if (raw instanceof Collection<?> col) return !col.isEmpty();
         if (raw.getClass().isArray()) return Array.getLength(raw) > 0;
         return true;
+    }
+
+    public Cardinality getCardinality() {
+        return cardinality;
     }
 
     private static AttributeResult pass() { return new AttributeResult(true, null); }

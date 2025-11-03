@@ -6,15 +6,14 @@ import de.openfabtwin.bimserver.checkingservice.model.result.Result;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EReference;
 
 import java.util.*;
 
 public class Classification extends Facet {
+
     private final Value system;
     private final Value value;
     private final String uri;
-    private final Cardinality cardinality;
     private final String instructions;
 
     public Classification(Value system, Value value, String uri, String cardinality, String instructions){
@@ -38,8 +37,6 @@ public class Classification extends Facet {
             this.prohibited_templates = "Shall not have a " + system.extract() + " reference of " + value.extract();
         }
     }
-
-
 
     @Override
     public List<IdEObject> filter(IfcModelInterface model) {
@@ -73,7 +70,53 @@ public class Classification extends Facet {
                return new ClassificationResult(true, null);
            }
            reason = Map.of("type", "NOVALUE");
+       }
 
+       if (isPass && this.value != null) { // Value check
+            List<String> actualValues = new ArrayList<>();
+            boolean anyMatch = false;
+
+            for (IdEObject r : refs) {
+                String id = getString(r, "Identification");
+                String ir = getString(r, "ItemReference");
+                String pick = (id != null) ? id : ir;
+                if (pick != null) {
+                    actualValues.add(pick);
+                    if (this.value.matches(pick)) {
+                        anyMatch = true;
+                    }
+                }
+            }
+
+            isPass = anyMatch;
+            if (!isPass) {
+                reason = Map.of(
+                        "type", "VALUE",
+                        "actual", actualValues
+                );
+            }
+       }
+
+       if (isPass) { // System check
+           List<String> actualSystems = new ArrayList<>();
+           boolean sysMatch = false;
+
+           for (IdEObject r : refs) {
+               IdEObject sys = getClassificationOfReference(r);
+               if (sys != null) {
+                   String sysName = getString(sys, "Name");
+                   if (sysName != null) actualSystems.add(sysName);
+                   if (system != null && system.matches(sysName)) sysMatch = true;
+               }
+           }
+
+           isPass = sysMatch;
+              if (!isPass) {
+                reason = Map.of(
+                          "type", "SYSTEM",
+                          "actual", actualSystems
+                );
+              }
        }
 
        if (cardinality == Cardinality.PROHIBITED) {
@@ -88,7 +131,7 @@ public class Classification extends Facet {
         Set<IdEObject> results = new LinkedHashSet<>();
         IdEObject current = ref;
         for (int guard = 0; guard < 50; guard++) { // small guard against cycles
-            IdEObject src = getRef(current, "ReferencedSource"); // SELECT in IFC: can be IfcClassification or IfcClassificationReference
+            IdEObject src = getObject(current, "ReferencedSource"); // SELECT in IFC: can be IfcClassification or IfcClassificationReference
             if (src == null) break;
             if (!"IfcClassificationReference".equals(src.eClass().getName())) break;
             // parent reference
@@ -99,12 +142,20 @@ public class Classification extends Facet {
         return results;
     }
 
-    private IdEObject getRef(IdEObject obj, String feature) {
-        if (obj == null) return null;
-        var f = obj.eClass().getEStructuralFeature(feature);
-        if (f == null) return null;
-        Object v = obj.eGet(f);
-        return (v instanceof IdEObject r) ? r : null;
+    private IdEObject getClassificationOfReference(IdEObject ref) {
+
+        IdEObject src = getObject(ref, "ReferencedSource");
+        if (src == null) return null;
+
+        String t = src.eClass().getName();
+        if(t.equals("IfcClassification")) return src;
+
+        IdEObject cur = src;
+        for (int guard = 0; guard < 50; guard++) { // small guard against cycles
+            if ("IfcClassification".equals(cur.eClass().getName())) return cur;
+            cur = getObject(cur, "ReferencedSource");
+        }
+        return null;
     }
 
     //Leaf references attached to the element via IfcRelAssociatesClassification.
