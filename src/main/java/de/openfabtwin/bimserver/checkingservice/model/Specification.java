@@ -28,8 +28,8 @@ public class Specification {
     private final List<IdEObject> applicable_entities = new ArrayList<>();
     private final List<IdEObject> passed_entities   = new ArrayList<>();
     private final List<IdEObject> failed_entities   = new ArrayList<>();
-    private Boolean status = null;
-    private Boolean is_ifc_version_supported = null;
+    private boolean status = false;
+    private boolean is_ifc_version_supported = false;
 
     private boolean check_ifc_version(SProject project) {
         String projectSchema = project.getSchema().toUpperCase();

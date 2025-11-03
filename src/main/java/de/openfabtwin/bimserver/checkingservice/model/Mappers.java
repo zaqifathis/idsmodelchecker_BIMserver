@@ -133,7 +133,6 @@ public class Mappers {
 
     //helpers for value/restriction
     private static String up(String s) { return s == null ? null : s.trim().toUpperCase(); }
-    private static String defCard(String c) { return (c == null || c.isBlank()) ? "required" : c; }
 
     private static Value value(IdsXml.IdsValueXml v) {
         if (v == null) return null;

@@ -131,7 +131,7 @@ public class Classification extends Facet {
         Set<IdEObject> results = new LinkedHashSet<>();
         IdEObject current = ref;
         for (int guard = 0; guard < 50; guard++) { // small guard against cycles
-            IdEObject src = getObject(current, "ReferencedSource"); // SELECT in IFC: can be IfcClassification or IfcClassificationReference
+            IdEObject src = getObject(current, "ReferencedSource");
             if (src == null) break;
             if (!"IfcClassificationReference".equals(src.eClass().getName())) break;
             // parent reference
@@ -143,6 +143,7 @@ public class Classification extends Facet {
     }
 
     private IdEObject getClassificationOfReference(IdEObject ref) {
+        if(ref == null) return null;
 
         IdEObject src = getObject(ref, "ReferencedSource");
         if (src == null) return null;
@@ -159,6 +160,7 @@ public class Classification extends Facet {
     }
 
     //Leaf references attached to the element via IfcRelAssociatesClassification.
+    @SuppressWarnings("unchecked")
     private Set<IdEObject> getLeafClassificationReferences(IdEObject element) {
         Set<IdEObject> results = new LinkedHashSet<>();
         var hasAssocF = element.eClass().getEStructuralFeature("HasAssociations");
