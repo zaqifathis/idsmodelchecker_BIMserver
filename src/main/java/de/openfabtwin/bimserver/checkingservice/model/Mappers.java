@@ -94,8 +94,8 @@ public class Mappers {
 
     public static Classification mapClassification(IdsXml.ClassificationXml c) {
         return new Classification(
-                value(c.value),
                 value(c.system),
+                value(c.value),
                 c.uri,
                 c.cardinality,
                 c.instructions

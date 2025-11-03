@@ -86,7 +86,7 @@ public class Entity extends Facet {
 
     private boolean predefinedFilter(IdEObject candidate) {
         String val;
-        List<?> typedBy = asList(candidate, "IsTypedBy");
+        List<?> typedBy = getList(candidate, "IsTypedBy");
         if (typedBy != null && !typedBy.isEmpty()) {
             for (Object relObj : typedBy) {
                 if (!(relObj instanceof IdEObject rel)) continue;
@@ -94,12 +94,12 @@ public class Entity extends Facet {
                 String relClass = rel.eClass().getName();
                 if (!"IfcRelDefinesByType".equals(relClass)) continue;
 
-                IdEObject type = asObject(rel, "RelatingType");
+                IdEObject type = getObject(rel, "RelatingType");
                 if (type == null) continue;
 
-                String pt = asString(type, "PredefinedType");
+                String pt = getString(type, "PredefinedType");
                 if (eq(pt, "USERDEFINED")){
-                    val = asString(type, "ElementType");
+                    val = getString(type, "ElementType");
                     actualPredefVal = val;
                     if(predefinedType.matches(val)) return true;
                 } else if (predefinedType.matches(pt)) {
@@ -119,42 +119,14 @@ public class Entity extends Facet {
     }
 
     private boolean objType (IdEObject obj) {
-        String pdef = asString(obj,"PredefinedType");
+        String pdef = getString(obj,"PredefinedType");
         if (eq(pdef, "USERDEFINED")) {
-            String val = asString(obj,"ObjectType");
+            String val = getString(obj,"ObjectType");
             actualPredefVal = val;
             if (predefinedType.matches(val)) return true;
         } //6th check
         actualPredefVal = pdef;
         return predefinedType.matches(pdef);
-    }
-
-    private static String asString(IdEObject obj, String featName) {
-        var f = obj.eClass().getEStructuralFeature(featName);
-        if (f == null) return null;
-        Object v = obj.eGet(f);
-        return normalizeEnumLike(v);
-    }
-
-    private static String normalizeEnumLike(Object v) {
-        if (v == null) return null;
-        String s = v.toString().trim();
-        if (s.isEmpty()) return null;
-        return s;
-    }
-
-    private static IdEObject asObject(IdEObject obj, String featName) {
-        var f = obj.eClass().getEStructuralFeature(featName);
-        if (f == null) return null;
-        Object v = obj.eGet(f);
-        return (v instanceof IdEObject) ? (IdEObject) v : null;
-    }
-
-    private static List<?> asList(IdEObject obj, String featName) {
-        var f = obj.eClass().getEStructuralFeature(featName);
-        if (f == null) return null;
-        Object v = obj.eGet(f);
-        return (v instanceof List<?>) ? (List<?>) v : null;
     }
 
 }
