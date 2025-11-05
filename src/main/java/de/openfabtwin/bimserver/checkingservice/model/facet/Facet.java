@@ -103,6 +103,17 @@ public abstract class Facet {
         return (v instanceof IdEObject) ? (IdEObject) v : null;
     }
 
+    public Object tryGet(IdEObject obj, String... features) {
+        for (String f : features) {
+            var sf = obj.eClass().getEStructuralFeature(f);
+            if (sf != null) {
+                Object v = obj.eGet(sf);
+                if (v != null) return v;
+            }
+        }
+        return null;
+    }
+
     public static List<?> getList(IdEObject obj, String featName) {
         var f = obj.eClass().getEStructuralFeature(featName);
         if (f == null) return null;

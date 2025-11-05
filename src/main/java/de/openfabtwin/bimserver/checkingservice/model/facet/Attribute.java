@@ -175,10 +175,6 @@ public class Attribute extends Facet {
         return true;
     }
 
-    public Cardinality getCardinality() {
-        return cardinality;
-    }
-
     private static AttributeResult pass() { return new AttributeResult(true, null); }
     private static AttributeResult fail(String type) { return new AttributeResult(false, Map.of("type", type)); }
     private static AttributeResult fail(Map<String, Object> reason) {

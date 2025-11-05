@@ -9,6 +9,8 @@ import org.eclipse.emf.ecore.EClass;
 
 import java.util.*;
 
+import static de.openfabtwin.bimserver.checkingservice.model.facet.Facet.Cardinality.*;
+
 public class Classification extends Facet {
 
     private final Value system;
@@ -66,7 +68,7 @@ public class Classification extends Facet {
        Map<String, Object> reason = new HashMap<>();
 
        if (!isPass) {
-           if (cardinality == Cardinality.OPTIONAL) {
+           if (cardinality == OPTIONAL) {
                return new ClassificationResult(true, null);
            }
            reason = Map.of("type", "NOVALUE");
@@ -119,7 +121,7 @@ public class Classification extends Facet {
               }
        }
 
-       if (cardinality == Cardinality.PROHIBITED) {
+       if (cardinality == PROHIBITED) {
             return new ClassificationResult(false, Map.of("type", "PROHIBITED"));
        }
 
