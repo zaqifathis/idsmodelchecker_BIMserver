@@ -96,14 +96,14 @@ public abstract class Facet {
         return s;
     }
 
-    public static IdEObject getObject(IdEObject obj, String featName) {
+    public static IdEObject getIdEObject(IdEObject obj, String featName) {
         var f = obj.eClass().getEStructuralFeature(featName);
         if (f == null) return null;
         Object v = obj.eGet(f);
         return (v instanceof IdEObject) ? (IdEObject) v : null;
     }
 
-    public Object tryGet(IdEObject obj, String... features) {
+    public Object getObject(IdEObject obj, String... features) {
         for (String f : features) {
             var sf = obj.eClass().getEStructuralFeature(f);
             if (sf != null) {
@@ -118,7 +118,9 @@ public abstract class Facet {
         var f = obj.eClass().getEStructuralFeature(featName);
         if (f == null) return null;
         Object v = obj.eGet(f);
-        return (v instanceof List<?>) ? (List<?>) v : null;
+        if (v instanceof List<?>)  return (List<?>)v;
+        if (v instanceof IdEObject) return List.of((IdEObject)v);
+        return null;
     }
 }
 

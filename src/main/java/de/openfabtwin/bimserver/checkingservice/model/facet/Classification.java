@@ -133,7 +133,7 @@ public class Classification extends Facet {
         Set<IdEObject> results = new LinkedHashSet<>();
         IdEObject current = ref;
         for (int guard = 0; guard < 50; guard++) { // small guard against cycles
-            IdEObject src = getObject(current, "ReferencedSource");
+            IdEObject src = getIdEObject(current, "ReferencedSource");
             if (src == null) break;
             if (!"IfcClassificationReference".equals(src.eClass().getName())) break;
             // parent reference
@@ -147,7 +147,7 @@ public class Classification extends Facet {
     private IdEObject getClassificationOfReference(IdEObject ref) {
         if(ref == null) return null;
 
-        IdEObject src = getObject(ref, "ReferencedSource");
+        IdEObject src = getIdEObject(ref, "ReferencedSource");
         if (src == null) return null;
 
         String t = src.eClass().getName();
@@ -156,7 +156,7 @@ public class Classification extends Facet {
         IdEObject cur = src;
         for (int guard = 0; guard < 50; guard++) { // small guard against cycles
             if ("IfcClassification".equals(cur.eClass().getName())) return cur;
-            cur = getObject(cur, "ReferencedSource");
+            cur = getIdEObject(cur, "ReferencedSource");
         }
         return null;
     }
