@@ -86,10 +86,6 @@ public abstract class Facet {
         var f = obj.eClass().getEStructuralFeature(featName);
         if (f == null) return null;
         Object v = obj.eGet(f);
-        return normalizeEnumLike(v);
-    }
-
-    private static String normalizeEnumLike(Object v) {
         if (v == null) return null;
         String s = v.toString().trim();
         if (s.isEmpty()) return null;
