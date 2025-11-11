@@ -59,7 +59,7 @@ public class Classification extends Facet {
     }
 
     @Override
-    public Result matches(IdEObject element) {
+    public Result matches(IfcModelInterface model, IdEObject element) {
        Set<IdEObject> leafRefs = getLeafClassificationReferences(element);
        Set<IdEObject> refs = new LinkedHashSet<>(leafRefs);
        for (IdEObject leaf : leafRefs) refs.addAll(getInheritedReferences(leaf));

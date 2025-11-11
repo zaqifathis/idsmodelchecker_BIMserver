@@ -53,7 +53,7 @@ public class Specification {
             boolean isApplicable = true;
             for (Facet f : this.applicability) {
                 if (f == facet) continue;
-                if (!f.matches(element).isPass()) {
+                if (!f.matches(model, element).isPass()) {
                     isApplicable = false;
                     break;
                 }
@@ -61,7 +61,7 @@ public class Specification {
             if (isApplicable) {
                 this.applicable_entities.add(element);
                 for(Facet f : this.requirements) {
-                    Result result = f.matches(element);
+                    Result result = f.matches(model, element);
                     boolean is_pass = result.isPass();
                     if (!"0".equals(this.maxOccurs)) { //required or optional
                         if (is_pass) {

@@ -35,7 +35,7 @@ public class Entity extends Facet {
     }
 
     @Override
-    public Result matches(IdEObject element) {
+    public Result matches(IfcModelInterface model, IdEObject element) {
         String entName = element.eClass().getName().toUpperCase(Locale.ROOT);
         boolean isPass = name != null && name.matches(entName);
 

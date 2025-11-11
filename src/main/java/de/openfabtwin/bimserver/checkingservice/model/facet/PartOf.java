@@ -17,7 +17,7 @@ public class PartOf extends Facet {
     }
 
     @Override
-    public Result matches(IdEObject element) {
+    public Result matches(IfcModelInterface model, IdEObject element) {
         return null;
     }
 

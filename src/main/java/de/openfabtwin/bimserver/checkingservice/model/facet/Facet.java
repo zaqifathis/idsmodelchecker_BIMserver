@@ -24,7 +24,7 @@ public abstract class Facet {
     public enum Cardinality {REQUIRED, OPTIONAL, PROHIBITED}
 
     public abstract List<IdEObject> filter(IfcModelInterface model);
-    public abstract Result matches(IdEObject element);
+    public abstract Result matches(IfcModelInterface model, IdEObject element);
 
     public static Cardinality cardinalityFromString(String s) {
         if (s == null || s.isBlank()) {
