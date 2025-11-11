@@ -1,5 +1,6 @@
 package de.openfabtwin.bimserver.checkingservice.model.facet;
 
+import de.openfabtwin.bimserver.checkingservice.model.SimpleValue;
 import de.openfabtwin.bimserver.checkingservice.model.Value;
 import de.openfabtwin.bimserver.checkingservice.model.result.PropertyResult;
 import de.openfabtwin.bimserver.checkingservice.model.result.Result;
@@ -78,6 +79,7 @@ public class Property extends Facet {
     public Result matches(IdEObject element) {
 
         // 1. get propertySet
+        // should store: Pset, <"_entity", IdEObject ,"basename", bn, "datatype", dt, "value", val>
         Map<String, Map<String,Object>> psets = getPropertySets(element);
 
         boolean isPass = !psets.isEmpty();
@@ -89,9 +91,21 @@ public class Property extends Facet {
         }
 
         if (isPass) {
-            for (var entry : psets.entrySet()) {
-                Map<String, Object> psetProps = entry.getValue();
-                Map<String, Object> chosen = new LinkedHashMap<>();
+            Map<String, Map<String, Object>> props = new LinkedHashMap<>();
+
+            outer:
+            for (var psetEntry : psets.entrySet()) {
+                String psetName = psetEntry.getKey();
+                Map<String, Object> psetProps = psetEntry.getValue();
+                Map<String, Object> collected = new LinkedHashMap<>();
+                props.put(psetName, collected);
+
+                // check empty basemap
+                for (var prop : psetProps.entrySet()) {
+                    String nm = prop.getKey();
+
+
+                }
 
                 // check datatype
 
@@ -192,32 +206,14 @@ public class Property extends Facet {
 
         if (props != null) {
             for (IdEObject prop : props) {
-                Object pn = getObject(prop, "Name");
-                if (pn == null || isNonEmptyValue(pn)) continue;
-
                 String bn = getString(prop, "Name");
-                if (baseName.matches(bn)) {
+                if (bn != null) {
                     if (psetType.equals("IfcPropertySet")) map.put(bn, extractValue(prop));
                     if (psetType.equals("IfcElementQuantity")) map.put(bn, extractQuantityValue(prop));
                 }
             }
         }
         return map;
-    }
-
-    private static boolean isNonEmptyValue(Object v) {
-        if (v == null) return true;
-        if (v instanceof CharSequence cs) return cs.isEmpty();
-        if (v instanceof List<?> l) return l.isEmpty();
-
-        if (v instanceof Enum<?> en) {
-            String n = en.name();
-            if ("UNKNOWN".equalsIgnoreCase(n) || "UNDEFINED".equalsIgnoreCase(n)) return true;
-        }
-
-        String s = String.valueOf(v).trim();
-        if ("UNKNOWN".equalsIgnoreCase(s) || "UNDEFINED".equalsIgnoreCase(s)) return true;
-        return false;
     }
 
     private Object extractQuantityValue(IdEObject prop) {
@@ -448,6 +444,7 @@ public class Property extends Facet {
 
     private Object unwrapIfcValue(IdEObject ifcValue) {
         if (ifcValue == null) return null;
+        Object type = ifcValue.eClass().getName();
         Object wf = getObject(ifcValue, "wrappedValue");
         if (wf != null) return wf;
         return ifcValue.toString();
