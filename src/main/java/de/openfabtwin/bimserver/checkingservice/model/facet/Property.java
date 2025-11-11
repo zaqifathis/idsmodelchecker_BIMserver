@@ -76,10 +76,9 @@ public class Property extends Facet {
     }
 
     @Override
-    public Result matches(IdEObject element) {
+    public Result matches(IfcModelInterface model, IdEObject element) {
 
         // 1. get propertySet
-        // should store: Pset, <"_entity", IdEObject ,"basename", bn, "datatype", dt, "value", val>
         Map<String, Map<String,Object>> psets = getPropertySets(element);
 
         boolean isPass = !psets.isEmpty();
@@ -91,30 +90,99 @@ public class Property extends Facet {
         }
 
         if (isPass) {
-            Map<String, Map<String, Object>> props = new LinkedHashMap<>();
 
-            outer:
             for (var psetEntry : psets.entrySet()) {
                 String psetName = psetEntry.getKey();
                 Map<String, Object> psetProps = psetEntry.getValue();
+
+                // --- 1) collect properties by baseName ---
                 Map<String, Object> collected = new LinkedHashMap<>();
-                props.put(psetName, collected);
 
-                // check empty basemap
-                for (var prop : psetProps.entrySet()) {
-                    String nm = prop.getKey();
-
-
+                if (baseName instanceof SimpleValue sv) {
+                    String bn = sv.extract();
+                    Object propVal = psetProps.get(bn);
+                    if (propVal != null && !"".equals(propVal)) {
+                        if (!isLogicalUnknownForProperty(psetProps, propVal)) {
+                            collected.put(bn, propVal);
+                        }
+                    }
+                } else { // regex / pattern
+                    for (var e : psetProps.entrySet()) {
+                        String nm = e.getKey();
+                        if ("_entity".equals(nm)) continue;
+                        if (baseName.matches(nm)) {
+                            Object v = e.getValue();
+                            if (v != null && !"".equals(v) && !isLogicalUnknownForProperty(psetProps,v)) {
+                                collected.put(nm, v);
+                            }
+                        }
+                    }
                 }
 
-                // check datatype
+                // --- 2) if no properties found for this pset ---
+                if (collected.isEmpty()) {
+                    if (cardinality == OPTIONAL) return new PropertyResult(true, reason);
+                    isPass = false;
+                    reason = Map.of("type", "NOVALUE");
+                    break;
+                }
 
-                // check value
+                // --- 3) datatype checks (against the IFC property entity) ---
+                if (dataType != null && !dataType.isBlank()) {
+                    IdEObject psetEntity = (IdEObject) psetProps.get("_entity");
+                    if (psetEntity == null) {
+                        isPass = false;
+                        reason = Map.of("type", "NOVALUE");
+                        break;
+                    }
+
+                    List<IdEObject> propEntities = getProperties(psetEntity);
+                    boolean supported = true;
+
+                    for (IdEObject propEntity : propEntities) {
+                        String propName = getString(propEntity, "Name");
+                        if (propName == null || !collected.containsKey(propName)) continue;
+
+                        String actualType = actualDataTypeForProperty(propEntity);
+                        if (actualType == null) continue; // some predefined etc., skip type check
+
+                        if (!dataType.equalsIgnoreCase(actualType)) {
+                            isPass = false;
+                            reason = Map.of("type", "DATATYPE", "actual", actualType, "dataType", dataType);
+                            break;
+                        }
+                    }
+                    if (!isPass) break;
+                    if (!supported) {
+                        isPass = false;
+                        reason = Map.of("type", "NOVALUE");
+                        break;
+                    }
+                }
+
+                // --- 4) value checks (self.value) ---
+                if (this.value != null) {
+                    for (Object actual : collected.values()) {
+                        if (!compareActualAgainstFacetValue(actual, this.value)) {
+                            isPass = false;
+                            reason = Map.of("type", "VALUE", "actual", actual);
+                            break;
+                        }
+                    }
+                    if (!isPass) break;
+                }
+
+                // if one Pset passes, continue to check the rest; overall pass if none fails
             }
+        }
+
+        if (cardinality == PROHIBITED) {
+            return new PropertyResult(!isPass, Map.of("type", "PROHIBITED"));
         }
 
         return new PropertyResult(isPass, reason);
     }
+
 
 
     @SuppressWarnings("unchecked")
@@ -194,15 +262,24 @@ public class Property extends Facet {
         return Map.of();
     }
 
+    @SuppressWarnings("unchecked")
+    private List<IdEObject> getProperties(IdEObject pset) {
+        if (pset == null) return List.of();
+
+        String name = pset.eClass().getName();
+        if ("IfcPropertySet".equals(name)) {
+            return (List<IdEObject>) getList(pset, "HasProperties");
+        } else if ("IfcElementQuantity".equals(name)) {
+            return (List<IdEObject>) getList(pset, "Quantities");
+        }
+        return List.of();
+    }
+
     private Map<String, Object> extractBaseValueMap(IdEObject obj, String psetType) {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("_entity", obj);
 
-        List<IdEObject> props = switch (psetType) {
-            case "IfcPropertySet" -> (List<IdEObject>) getList(obj, "HasProperties");
-            case "IfcElementQuantity" -> (List<IdEObject>) getList(obj, "Quantities");
-            default -> null;
-        };
+        List<IdEObject> props = getProperties(obj);
 
         if (props != null) {
             for (IdEObject prop : props) {
@@ -217,8 +294,8 @@ public class Property extends Facet {
     }
 
     private Object extractQuantityValue(IdEObject prop) {
-        Object nominal = getObject(prop, "VolumeValue", "AreaValue", "WeightValue", "LengthValue", "TimeValue", "CountValue");
-        return unwrapIfValue(nominal);
+        Object raw = getObject(prop, "VolumeValue", "AreaValue", "WeightValue", "LengthValue", "TimeValue", "CountValue");
+        return unwrapIfValue(raw);
     }
 
     private Map<String, Object> extractPredefPropertySetMap(IdEObject obj) {
@@ -241,20 +318,24 @@ public class Property extends Facet {
         if ("IfcPropertySingleValue".equals(type)) {
             IdEObject nominal = getIdEObject(prop, "NominalValue");
             return unwrapIfcValue(nominal);
-        } else if ("IfcPropertyListValue".equals(type)) {
+        }
+        else if ("IfcPropertyListValue".equals(type)) {
             List<Object> list = (List<Object>) getList(prop,"ListValues");
             return unwrapList(list);
-        } else if ("IfcPropertyEnumeratedValue".equals(type)) {
+        }
+        else if ("IfcPropertyEnumeratedValue".equals(type)) {
             List<Object> list = (List<Object>) getList(prop,"EnumerationValues");
             return unwrapList(list);
-        } else if ("IfcPropertyBoundedValue".equals(type)) {
+        }
+        else if ("IfcPropertyBoundedValue".equals(type)) {
             List<Object> vals = new ArrayList<>();
             for (String a : new String[]{"UpperBoundValue", "LowerBoundValue", "SetPointValue"}) {
                 Object raw = getObject(prop, a);
                 if (raw != null) vals.add(unwrapIfValue(raw));
             }
             return vals;
-        } else if ("IfcPropertyTableValue".equals(type)) {
+        }
+        else if ("IfcPropertyTableValue".equals(type)) {
             List<Object> vals = new ArrayList<>();
             List<Object> def = (List<Object>) getList(prop,"DefiningValues");
             List<Object> ded = (List<Object>) getList(prop,"DefinedValues");
@@ -444,10 +525,145 @@ public class Property extends Facet {
 
     private Object unwrapIfcValue(IdEObject ifcValue) {
         if (ifcValue == null) return null;
-        Object type = ifcValue.eClass().getName();
         Object wf = getObject(ifcValue, "wrappedValue");
         if (wf != null) return wf;
         return ifcValue.toString();
     }
 
+
+    //---------------
+
+    @SuppressWarnings("unchecked")
+    private boolean isLogicalUnknownForProperty(Map<String,Object> psetMap, Object propVal) {
+        // treat only "UNKNOWN"/"UNDEFINED" as unknown; everything else passes through
+        String s = String.valueOf(propVal);
+        if (!"UNKNOWN".equalsIgnoreCase(s) && !"UNDEFINED".equalsIgnoreCase(s)) return false;
+
+        IdEObject psetEntity = (IdEObject) psetMap.get("_entity");
+        if (psetEntity == null) return false;
+
+        for (IdEObject p : getProperties(psetEntity)) {
+            String nm = getString(p, "Name");
+            if(!baseName.matches(nm)) continue;
+
+            String cls = p.eClass().getName();
+            if ("IfcPropertySingleValue".equals(cls)) {
+                IdEObject nominal = getIdEObject(p, "NominalValue");
+                if (nominal != null && "IfcLogical".equals(nominal.eClass().getName())) {
+                    return true;
+                }
+            }
+            // Other types don’t use UNKNOWN convention → treat as actual value
+        }
+        return false;
+    }
+
+    @SuppressWarnings("unchecked")
+    private String actualDataTypeForProperty(IdEObject propEntity) {
+        String t = propEntity.eClass().getName();
+
+        if ("IfcPropertySingleValue".equals(t)) {
+            IdEObject nominal = getIdEObject(propEntity, "NominalValue");
+            return (nominal != null) ? nominal.eClass().getName() : null;
+        }
+
+        if ("IfcPropertyEnumeratedValue".equals(t)) {
+            List<Object> list = (List<Object>) getList(propEntity, "EnumerationValues");
+            if (list != null && !list.isEmpty()) {
+                Object v = list.get(0);
+                return (v instanceof IdEObject e) ? e.eClass().getName() : typeFromPrimitive(v);
+            }
+            return null;
+        }
+
+        if ("IfcPropertyListValue".equals(t)) {
+            List<Object> list = (List<Object>) getList(propEntity, "ListValues");
+            if (list != null && !list.isEmpty()) {
+                Object v = list.get(0);
+                return (v instanceof IdEObject e) ? e.eClass().getName() : typeFromPrimitive(v);
+            }
+            return null;
+        }
+
+        if ("IfcPropertyBoundedValue".equals(t)) {
+            for (String a : new String[]{"UpperBoundValue","LowerBoundValue","SetPointValue"}) {
+                Object raw = getObject(propEntity, a);
+                if (raw instanceof IdEObject e) return e.eClass().getName();
+            }
+            return null;
+        }
+
+        if ("IfcPropertyTableValue".equals(t)) {
+            List<Object> def = (List<Object>) getList(propEntity,"DefiningValues");
+            List<Object> ded = (List<Object>) getList(propEntity,"DefinedValues");
+            Object v = (def != null && !def.isEmpty()) ? def.get(0) : (ded != null && !ded.isEmpty() ? ded.get(0) : null);
+            if (v instanceof IdEObject e) return e.eClass().getName();
+            return typeFromPrimitive(v);
+        }
+
+        // Quantities: derive by class name → IfcLengthMeasure, IfcAreaMeasure, etc.
+        if (t.startsWith("IfcQuantity") || "IfcPhysicalSimpleQuantity".equals(t)) {
+            if (t.startsWith("IfcQuantityLength"))  return "IfcLengthMeasure";
+            if (t.startsWith("IfcQuantityArea"))    return "IfcAreaMeasure";
+            if (t.startsWith("IfcQuantityVolume"))  return "IfcVolumeMeasure";
+            if (t.startsWith("IfcQuantityCount"))   return "IfcCountMeasure";
+            if (t.startsWith("IfcQuantityWeight"))  return "IfcMassMeasure";
+            if (t.startsWith("IfcQuantityTime"))    return "IfcTimeMeasure";
+            return null;
+        }
+
+        return null; // predefined sets would be handled differently; often skip dtype
+    }
+
+    private String typeFromPrimitive(Object v) {
+        if (v == null) return null;
+        if (v instanceof Number) return v.getClass().getSimpleName();
+        if (v instanceof Boolean) return "Boolean";
+        return "String";
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean compareActualAgainstFacetValue(Object actual, Value expected) {
+        if (actual == null || expected == null) return false;
+
+        // If actual is a list → ANY match
+        if (actual instanceof List<?> list) {
+            for (Object a : list) if (compareActualAgainstFacetValue(a, expected)) return true;
+            return false;
+        }
+
+        // SimpleValue → exact string / numeric-eq
+        if (expected instanceof SimpleValue sv) {
+            String exp = sv.extract();
+            if (actual instanceof Number n && isNumeric(exp)) {
+                try {
+                    double ev = Double.parseDouble(exp);
+                    return Math.abs(ev - n.doubleValue()) <= 1e-6;
+                } catch (NumberFormatException ignore) { /* fallthrough */ }
+            }
+
+            String s = String.valueOf(actual);
+            if (s.equals("TRUE") || s.equals("FALSE")) {
+                s = s.toLowerCase();
+            }
+            return expected.matches(s);
+        }
+
+        // RestrictionValue → use its .matches(String)
+        String s = String.valueOf(actual);
+        if (s.equals("TRUE") || s.equals("FALSE")) {
+            s = s.toLowerCase();
+        }
+        return expected.matches(s);
+    }
+
+    private boolean isNumeric(String s) {
+        return s != null && s.matches("[-+]?\\d*\\.?\\d+");
+    }
+
+    //-----------CONVERT TO SI UNIT------------
+
 }
+
+
+

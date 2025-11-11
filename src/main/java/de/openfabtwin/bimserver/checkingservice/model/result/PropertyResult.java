@@ -21,7 +21,7 @@ public class PropertyResult extends Result {
                 if (((List<?>) reason.get("actual")).size() == 1) return "The property value" + ((List<?>) reason.get("actual")).get(0) + " does not match the requirement";
                 else return "The property values " + reason.get("actual") + " do not meet the requirement";
             } else
-                return "The property values " + reason.get("actual") + " do not meet the requirement";
+                return "The property value " + reason.get("actual") + " do not meet the requirement";
         }
         if (reason.get("type") == "PROHIBITED")
             return "The property should not have met the requirement";
