@@ -64,7 +64,7 @@ public class Attribute extends Facet {
     }
 
     @Override
-    public Result matches(IdEObject element) {
+    public Result matches(IfcModelInterface model, IdEObject element) {
 
         List<EStructuralFeature> features = new ArrayList<>();
 
@@ -173,10 +173,6 @@ public class Attribute extends Facet {
         if (raw instanceof Collection<?> col) return !col.isEmpty();
         if (raw.getClass().isArray()) return Array.getLength(raw) > 0;
         return true;
-    }
-
-    public Cardinality getCardinality() {
-        return cardinality;
     }
 
     private static AttributeResult pass() { return new AttributeResult(true, null); }

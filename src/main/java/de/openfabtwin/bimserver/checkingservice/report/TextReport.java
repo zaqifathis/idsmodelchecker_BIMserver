@@ -35,7 +35,9 @@ public class TextReport extends Reporter {
 
         int total = spec.getApplicable_entities().size();
         int total_success = total - spec.getFailed_entities().size();
-        print(String.valueOf((total_success/total)), "");
+
+        if (total == 0) print("No applicable entities", "");
+        else print(String.valueOf((total_success/total)), "");
 
         if(!"0".equals(spec.getMinOccurs())) print(" | ", "");
         print(spec.getName());

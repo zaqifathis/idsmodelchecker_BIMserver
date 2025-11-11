@@ -35,7 +35,7 @@ public class Entity extends Facet {
     }
 
     @Override
-    public Result matches(IdEObject element) {
+    public Result matches(IfcModelInterface model, IdEObject element) {
         String entName = element.eClass().getName().toUpperCase(Locale.ROOT);
         boolean isPass = name != null && name.matches(entName);
 
@@ -94,7 +94,7 @@ public class Entity extends Facet {
                 String relClass = rel.eClass().getName();
                 if (!"IfcRelDefinesByType".equals(relClass)) continue;
 
-                IdEObject type = getObject(rel, "RelatingType");
+                IdEObject type = getIdEObject(rel, "RelatingType");
                 if (type == null) continue;
 
                 String pt = getString(type, "PredefinedType");

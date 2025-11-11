@@ -24,7 +24,7 @@ public abstract class Facet {
     public enum Cardinality {REQUIRED, OPTIONAL, PROHIBITED}
 
     public abstract List<IdEObject> filter(IfcModelInterface model);
-    public abstract Result matches(IdEObject element);
+    public abstract Result matches(IfcModelInterface model, IdEObject element);
 
     public static Cardinality cardinalityFromString(String s) {
         if (s == null || s.isBlank()) {
@@ -86,28 +86,37 @@ public abstract class Facet {
         var f = obj.eClass().getEStructuralFeature(featName);
         if (f == null) return null;
         Object v = obj.eGet(f);
-        return normalizeEnumLike(v);
-    }
-
-    private static String normalizeEnumLike(Object v) {
         if (v == null) return null;
         String s = v.toString().trim();
         if (s.isEmpty()) return null;
         return s;
     }
 
-    public static IdEObject getObject(IdEObject obj, String featName) {
+    public static IdEObject getIdEObject(IdEObject obj, String featName) {
         var f = obj.eClass().getEStructuralFeature(featName);
         if (f == null) return null;
         Object v = obj.eGet(f);
         return (v instanceof IdEObject) ? (IdEObject) v : null;
     }
 
+    public Object getObject(IdEObject obj, String... features) {
+        for (String f : features) {
+            var sf = obj.eClass().getEStructuralFeature(f);
+            if (sf != null) {
+                Object v = obj.eGet(sf);
+                if (v != null) return v;
+            }
+        }
+        return null;
+    }
+
     public static List<?> getList(IdEObject obj, String featName) {
         var f = obj.eClass().getEStructuralFeature(featName);
         if (f == null) return null;
         Object v = obj.eGet(f);
-        return (v instanceof List<?>) ? (List<?>) v : null;
+        if (v instanceof List<?>)  return (List<?>)v;
+        if (v instanceof IdEObject) return List.of((IdEObject)v);
+        return null;
     }
 }
 

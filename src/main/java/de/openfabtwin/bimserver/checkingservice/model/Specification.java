@@ -28,8 +28,8 @@ public class Specification {
     private final List<IdEObject> applicable_entities = new ArrayList<>();
     private final List<IdEObject> passed_entities   = new ArrayList<>();
     private final List<IdEObject> failed_entities   = new ArrayList<>();
-    private Boolean status = null;
-    private Boolean is_ifc_version_supported = null;
+    private boolean status = false;
+    private boolean is_ifc_version_supported = false;
 
     private boolean check_ifc_version(SProject project) {
         String projectSchema = project.getSchema().toUpperCase();
@@ -53,7 +53,7 @@ public class Specification {
             boolean isApplicable = true;
             for (Facet f : this.applicability) {
                 if (f == facet) continue;
-                if (!f.matches(element).isPass()) {
+                if (!f.matches(model, element).isPass()) {
                     isApplicable = false;
                     break;
                 }
@@ -61,7 +61,7 @@ public class Specification {
             if (isApplicable) {
                 this.applicable_entities.add(element);
                 for(Facet f : this.requirements) {
-                    Result result = f.matches(element);
+                    Result result = f.matches(model, element);
                     boolean is_pass = result.isPass();
                     if (!"0".equals(this.maxOccurs)) { //required or optional
                         if (is_pass) {

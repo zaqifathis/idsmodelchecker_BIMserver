@@ -9,6 +9,8 @@ import org.eclipse.emf.ecore.EClass;
 
 import java.util.*;
 
+import static de.openfabtwin.bimserver.checkingservice.model.facet.Facet.Cardinality.*;
+
 public class Classification extends Facet {
 
     private final Value system;
@@ -57,7 +59,7 @@ public class Classification extends Facet {
     }
 
     @Override
-    public Result matches(IdEObject element) {
+    public Result matches(IfcModelInterface model, IdEObject element) {
        Set<IdEObject> leafRefs = getLeafClassificationReferences(element);
        Set<IdEObject> refs = new LinkedHashSet<>(leafRefs);
        for (IdEObject leaf : leafRefs) refs.addAll(getInheritedReferences(leaf));
@@ -66,7 +68,7 @@ public class Classification extends Facet {
        Map<String, Object> reason = new HashMap<>();
 
        if (!isPass) {
-           if (cardinality == Cardinality.OPTIONAL) {
+           if (cardinality == OPTIONAL) {
                return new ClassificationResult(true, null);
            }
            reason = Map.of("type", "NOVALUE");
@@ -119,7 +121,7 @@ public class Classification extends Facet {
               }
        }
 
-       if (cardinality == Cardinality.PROHIBITED) {
+       if (cardinality == PROHIBITED) {
             return new ClassificationResult(false, Map.of("type", "PROHIBITED"));
        }
 
@@ -131,7 +133,7 @@ public class Classification extends Facet {
         Set<IdEObject> results = new LinkedHashSet<>();
         IdEObject current = ref;
         for (int guard = 0; guard < 50; guard++) { // small guard against cycles
-            IdEObject src = getObject(current, "ReferencedSource"); // SELECT in IFC: can be IfcClassification or IfcClassificationReference
+            IdEObject src = getIdEObject(current, "ReferencedSource");
             if (src == null) break;
             if (!"IfcClassificationReference".equals(src.eClass().getName())) break;
             // parent reference
@@ -143,8 +145,9 @@ public class Classification extends Facet {
     }
 
     private IdEObject getClassificationOfReference(IdEObject ref) {
+        if(ref == null) return null;
 
-        IdEObject src = getObject(ref, "ReferencedSource");
+        IdEObject src = getIdEObject(ref, "ReferencedSource");
         if (src == null) return null;
 
         String t = src.eClass().getName();
@@ -153,12 +156,13 @@ public class Classification extends Facet {
         IdEObject cur = src;
         for (int guard = 0; guard < 50; guard++) { // small guard against cycles
             if ("IfcClassification".equals(cur.eClass().getName())) return cur;
-            cur = getObject(cur, "ReferencedSource");
+            cur = getIdEObject(cur, "ReferencedSource");
         }
         return null;
     }
 
     //Leaf references attached to the element via IfcRelAssociatesClassification.
+    @SuppressWarnings("unchecked")
     private Set<IdEObject> getLeafClassificationReferences(IdEObject element) {
         Set<IdEObject> results = new LinkedHashSet<>();
         var hasAssocF = element.eClass().getEStructuralFeature("HasAssociations");
