@@ -102,8 +102,6 @@ public class Specification {
                 if (!this.applicable_entities.isEmpty() && this.requirements.isEmpty()) this.status = false;
             }
         }
-        LOGGER.info("Specification '{}' validated. Status: {}", this.name, this.status ? "PASS" : "FAIL");
-
     }
 
 
@@ -139,6 +137,21 @@ public class Specification {
 //            case "IFC4X3_ADD2" -> IFC4X3_ADD2;
             default -> throw new IllegalArgumentException("Only accept IFC2X3TC1 and IFC4. IFC version: " + s);
         };
+    }
+
+    public void reset() {
+        this.applicable_entities.clear();
+        this.passed_entities.clear();
+        this.failed_entities.clear();
+        this.status = false;
+        for(Facet f: this.applicability) {
+            f.getFailures().clear();
+            f.setStatus(false);
+        }
+        for (Facet f : this.requirements) {
+            f.getFailures().clear();
+            f.setStatus(false);
+        }
     }
 
 }

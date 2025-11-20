@@ -1,6 +1,9 @@
 package de.openfabtwin.bimserver.checkingservice.dto;
 
+import de.openfabtwin.bimserver.checkingservice.model.LocalDateAdapter;
+
 import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +29,7 @@ public class IdsXml {
         private String description;
         private String author;
 
+        @XmlJavaTypeAdapter(LocalDateAdapter.class)
         @XmlSchemaType(name = "date")
         private LocalDate date;
 

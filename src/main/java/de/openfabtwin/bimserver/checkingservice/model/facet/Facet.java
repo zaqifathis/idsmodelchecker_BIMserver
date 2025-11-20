@@ -15,7 +15,7 @@ public abstract class Facet {
 
     protected Cardinality cardinality = REQUIRED;
     protected Boolean status = null;
-    protected Set<IdEObject> passedEntities = new HashSet<>();
+    protected List<IdEObject> passedEntities = new ArrayList<>();
     protected List<FacetFailure> failures = new ArrayList<>();
     protected String applicability_templates;
     protected String requirement_templates;
@@ -62,6 +62,10 @@ public abstract class Facet {
 
     public void addPassedEntities(IdEObject element) {
         this.passedEntities.add(element);
+    }
+
+    public List<IdEObject> getPassedEntities() {
+        return this.passedEntities;
     }
 
     public void addFailures(IdEObject element, String reason) {

@@ -15,6 +15,7 @@ public class Ids {
     public void validate(SProject project, IfcModelInterface model) {
 
         for (Specification spec : specifications) {
+            spec.reset();
             spec.validate(project, model);
         }
     }
