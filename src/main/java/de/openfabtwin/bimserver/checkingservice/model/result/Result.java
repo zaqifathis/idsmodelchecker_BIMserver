@@ -16,4 +16,10 @@ public abstract class Result {
     }
 
     public abstract String to_String();
+
+    protected String reasonType() {
+        if (reason == null) return "";
+        Object t = reason.get("type");
+        return t instanceof String s ? s : "";
+    }
 }

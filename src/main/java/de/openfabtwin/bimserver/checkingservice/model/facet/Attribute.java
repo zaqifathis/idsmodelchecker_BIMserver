@@ -59,7 +59,6 @@ public class Attribute extends Facet {
                 break;
             }
         }
-        // future: consider check value as well
         return candidates;
     }
 
@@ -92,8 +91,8 @@ public class Attribute extends Facet {
                 Object raw = element.eGet(attr);
                 if(isPresent(raw, attr)) return fail("PROHIBITED");
             }
-            return fail("PROHIBITED");
         }
+        return fail("PROHIBITED");
     }
 
     private Result evalOptional(IdEObject element, List<EStructuralFeature> attributes) {
@@ -102,10 +101,19 @@ public class Attribute extends Facet {
         for (EStructuralFeature attr: attributes) {
             Object raw = element.eGet(attr);
             if(!isPresent(raw, attr)) continue;
+
             if (!isActualValue(raw)) return fail(Map.of(
                     "type", "FALSEY",
                     "actual", raw.toString()
             ));
+
+            if (raw instanceof IdEObject) {
+                if (this.value != null) {
+                    return fail(Map.of("type", "VALUE", "actual", raw.toString()));
+                }
+                continue;
+            }
+
             if (this.value != null && !value.matches(raw.toString().trim())) {
                 return fail(Map.of(
                         "type", "VALUE",
@@ -121,11 +129,21 @@ public class Attribute extends Facet {
 
         for(EStructuralFeature attr : attributes) {
             Object raw = element.eGet(attr);
+
             if(!isPresent(raw, attr)) return fail("NOVALUE");
+
             if (!isActualValue(raw)) return fail(Map.of(
                     "type", "FALSEY",
                     "actual", raw.toString()
             ));
+
+            if (raw instanceof IdEObject) {
+                if (this.value != null) {
+                    return fail(Map.of("type", "VALUE", "actual", raw.toString()));
+                }
+                continue;
+            }
+
             if (this.value != null && !value.matches(raw.toString().trim())) {
                 return fail(Map.of(
                         "type", "VALUE",
@@ -136,6 +154,7 @@ public class Attribute extends Facet {
         return pass();
     }
 
+    @SuppressWarnings("unchecked")
     private boolean isPresent(Object raw, EStructuralFeature attr) {
         if (raw == null) return false;
 

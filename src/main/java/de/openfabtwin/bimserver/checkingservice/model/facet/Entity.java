@@ -15,7 +15,7 @@ public class Entity extends Facet {
     private final Value name;
     private final Value predefinedType;
     private final String instructions;
-    private String actualPredefVal = "";
+//    private String actualPredefVal = "";
 
 
     public Entity(Value name, Value predefinedType, String instructions) {
@@ -35,35 +35,11 @@ public class Entity extends Facet {
     }
 
     @Override
-    public Result matches(IfcModelInterface model, IdEObject element) {
-        String entName = element.eClass().getName().toUpperCase(Locale.ROOT);
-        boolean isPass = name != null && name.matches(entName);
-
-        Map<String, Object> reason = null;
-        if (!isPass) {
-            reason = Map.of(
-                    "type", "NAME",
-                    "actual",entName
-            );
-        }
-        if (isPass && this.predefinedType != null) {
-            isPass = predefinedFilter(element);
-
-            if (!isPass) {
-                reason = Map.of(
-                        "type", "PREDEFINEDTYPE",
-                        "actual", actualPredefVal
-                );
-            }
-        }
-        return new EntityResult(isPass, reason);
-    }
-
-    @Override
     public List<IdEObject> filter(IfcModelInterface model) {
         List<IdEObject> candidates = new ArrayList<>();
         var meta = model.getPackageMetaData();
         var epkg = meta.getEPackage();
+
         Set<Long> seen = new HashSet<>();
         for (EClassifier c : epkg.getEClassifiers()) {
             if (c instanceof EClass ec) {
@@ -78,15 +54,53 @@ public class Entity extends Facet {
         if (this.predefinedType == null) return candidates;
 
         List<IdEObject> result = new ArrayList<>();
+        String[] unused = {""};
         for (IdEObject candidate : candidates) {
-            if(predefinedFilter(candidate)) result.add(candidate);
+            if(predefinedFilter(candidate, unused)) result.add(candidate);
         }
         return result;
     }
 
-    private boolean predefinedFilter(IdEObject candidate) {
-        String val;
+    @Override
+    public Result matches(IfcModelInterface model, IdEObject element) {
+        String entName = element.eClass().getName().toUpperCase(Locale.ROOT);
+        boolean isPass = name != null && name.matches(entName);
+
+        Map<String, Object> reason = null;
+
+        if (!isPass) {
+            String schema = model.getPackageMetaData().getSchema().name().toUpperCase();
+            String nameStr = name != null ? name.extract().toUpperCase() : "";
+            if (schema.contains("IFC2X3") && !nameStr.endsWith("TYPE")) {
+                IdEObject elementType = getElementType(element);
+                if (elementType != null) {
+                    String typeName = elementType.eClass().getName().toUpperCase(Locale.ROOT);
+                    if (typeName.equals(nameStr + "TYPE")) {
+                        isPass = true;
+                    }
+                }
+            }
+            if (!isPass) {
+                reason = Map.of("type", "NAME", "actual", entName);
+            }
+        }
+
+        if (isPass && this.predefinedType != null) {
+            String[] actualOut = {""};
+            isPass = predefinedFilter(element, actualOut);
+            if (!isPass) {
+                reason = Map.of(
+                        "type", "PREDEFINEDTYPE",
+                        "actual", actualOut[0]
+                );
+            }
+        }
+        return new EntityResult(isPass, reason);
+    }
+
+    private boolean predefinedFilter(IdEObject candidate, String[] actualOut) {
         List<?> typedBy = getList(candidate, "IsTypedBy");
+
         if (typedBy != null && !typedBy.isEmpty()) {
             for (Object relObj : typedBy) {
                 if (!(relObj instanceof IdEObject rel)) continue;
@@ -99,17 +113,18 @@ public class Entity extends Facet {
 
                 String pt = getString(type, "PredefinedType");
                 if (eq(pt, "USERDEFINED")){
-                    val = getString(type, "ElementType");
-                    actualPredefVal = val;
+                    String val = getString(type, "ElementType");
+                    actualOut[0] = val != null ? val : "";
                     if(predefinedType.matches(val)) return true;
                 } else if (predefinedType.matches(pt)) {
+                    actualOut[0] = pt != null ? pt : "";
                     return true;
                 } else {
-                    if (objType(candidate)) return true;
+                    if (objType(candidate, actualOut)) return true;
                 }
             }
         } else {
-            return objType(candidate);
+            return objType(candidate, actualOut);
         }
         return false;
     }
@@ -118,15 +133,41 @@ public class Entity extends Facet {
         return a != null && a.equals(b);
     }
 
-    private boolean objType (IdEObject obj) {
+    private boolean objType (IdEObject obj, String[] actualOut) {
         String pdef = getString(obj,"PredefinedType");
         if (eq(pdef, "USERDEFINED")) {
             String val = getString(obj,"ObjectType");
-            actualPredefVal = val;
-            if (predefinedType.matches(val)) return true;
+            actualOut[0] = val != null ? val : "";
+            return predefinedType.matches(val);
         } //6th check
-        actualPredefVal = pdef;
+        actualOut[0] = pdef != null ? pdef : "";
         return predefinedType.matches(pdef);
+    }
+
+    @SuppressWarnings("unchecked")
+    private IdEObject getElementType(IdEObject element) {
+        // IFC4+: IsTypedBy → RelatingType
+        List<?> typedBy = getList(element, "IsTypedBy");
+        if (typedBy != null) {
+            for (Object relObj : typedBy) {
+                if (!(relObj instanceof IdEObject rel)) continue;
+                if (!"IfcRelDefinesByType".equals(rel.eClass().getName())) continue;
+                IdEObject type = getIdEObject(rel, "RelatingType");
+                if (type != null) return type;
+            }
+        }
+
+        // IFC2X3: IsDefinedBy → RelatingType (IfcRelDefinesByType also exists in 2x3)
+        List<?> definedBy = getList(element, "IsDefinedBy");
+        if (definedBy != null) {
+            for (Object relObj : definedBy) {
+                if (!(relObj instanceof IdEObject rel)) continue;
+                if (!"IfcRelDefinesByType".equals(rel.eClass().getName())) continue;
+                IdEObject type = getIdEObject(rel, "RelatingType");
+                if (type != null) return type;
+            }
+        }
+        return null;
     }
 
 }

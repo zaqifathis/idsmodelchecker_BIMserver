@@ -67,6 +67,7 @@ public class Classification extends Facet {
        boolean isPass = !refs.isEmpty();
        Map<String, Object> reason = new HashMap<>();
 
+       // --- No classification at all ---
        if (!isPass) {
            if (cardinality == OPTIONAL) {
                return new ClassificationResult(true, null);
@@ -74,7 +75,8 @@ public class Classification extends Facet {
            reason = Map.of("type", "NOVALUE");
        }
 
-       if (isPass && this.value != null) { // Value check
+       // --- only check value when this.value is set ---
+       if (isPass && this.value != null) {
             List<String> actualValues = new ArrayList<>();
             boolean anyMatch = false;
 
@@ -99,7 +101,8 @@ public class Classification extends Facet {
             }
        }
 
-       if (isPass) { // System check
+       // --- only check system when this.system is set ---
+       if (isPass && this.system != null) {
            List<String> actualSystems = new ArrayList<>();
            boolean sysMatch = false;
 
@@ -121,8 +124,9 @@ public class Classification extends Facet {
               }
        }
 
+       // PROHIBITED returns !isPass, not always false ---
        if (cardinality == PROHIBITED) {
-            return new ClassificationResult(false, Map.of("type", "PROHIBITED"));
+            return new ClassificationResult(!isPass, Map.of("type", "PROHIBITED"));
        }
 
        return new ClassificationResult(isPass, reason);

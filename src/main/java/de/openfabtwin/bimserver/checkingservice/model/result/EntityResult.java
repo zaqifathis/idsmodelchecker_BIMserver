@@ -10,8 +10,10 @@ public class EntityResult extends Result {
 
     @Override
     public String to_String() {
-        if (reason.get("type") == "NAME") return "the entity class " + reason.get("actual") + " does not meet the required IFC class";
-        else if (reason.get("type") == "PREDEFINEDTYPE") return "The predefined type " + reason.get("actual") + " does not meet the required type";
-        return "";
+        return switch (reasonType()) {
+            case "NAME" -> "The entity class \"" + reason.get("actual") + "\" does not meet the required IFC class";
+            case "PREDEFINEDTYPE" -> "The predefined type \"" + reason.get("actual") + "\" does not meet the required type";
+            default -> "";
+        };
     }
 }

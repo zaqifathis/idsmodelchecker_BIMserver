@@ -84,7 +84,8 @@ public class Property extends Facet {
         Map<String, Map<String,Object>> psets = getPropertySets(model, element);
 
         boolean isPass = !psets.isEmpty();
-        Map<String, Object> reason = new HashMap<>();
+
+        Map<String, Object> reason = null;
 
         if (!isPass) {
             if(cardinality == OPTIONAL) return new PropertyResult(true, reason);
@@ -121,7 +122,7 @@ public class Property extends Facet {
 
             // --- 2) if no properties found for this pset ---
             if (collected.isEmpty()) {
-                if (cardinality == OPTIONAL) return new PropertyResult(true, reason);
+                if (cardinality == OPTIONAL) return new PropertyResult(true, null);
                 isPass = false;
                 reason = Map.of("type", "NOVALUE");
                 break;
@@ -172,11 +173,11 @@ public class Property extends Facet {
         }
 
         if (!isPass) {
-            if (cardinality == OPTIONAL) return new PropertyResult(true, reason);
+            if (cardinality == OPTIONAL) return new PropertyResult(true, null);
             return new PropertyResult(false, (reason != null ? reason : Map.of("type", "NOVALUE")));
         }
 
-        return new PropertyResult(isPass, reason);
+        return new PropertyResult(true, null);
     }
 
 
