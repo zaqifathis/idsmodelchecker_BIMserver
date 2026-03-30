@@ -173,8 +173,10 @@ public class Property extends Facet {
         }
 
         if (!isPass) {
-            if (cardinality == OPTIONAL) return new PropertyResult(true, null);
-            return new PropertyResult(false, (reason != null ? reason : Map.of("type", "NOVALUE")));
+            String failType = reason != null ? (String) reason.get("type") : "NOVALUE";
+            boolean isAbsence = "NOVALUE".equals(failType) || "NOPSET".equals(failType);
+            if (cardinality == OPTIONAL && isAbsence) return new PropertyResult(true, null);
+            return new PropertyResult(false, reason != null ? reason : Map.of("type", "NOVALUE"));
         }
 
         return new PropertyResult(true, null);
