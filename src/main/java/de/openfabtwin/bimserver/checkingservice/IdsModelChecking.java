@@ -44,7 +44,7 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
         final String URL_IDS = runningService.getPluginConfiguration().getString("IdsFile");
 
         String report = null;
-        if (URL_IDS == null || URL_IDS.isEmpty() || !URL_IDS.toLowerCase().endsWith(".ids")) {
+        if (URL_IDS == null || URL_IDS.isEmpty()) {
             report = "Missing or invalid IDS URL.";
         } else {
             Ids ids = IdsMapper.read(URL_IDS);

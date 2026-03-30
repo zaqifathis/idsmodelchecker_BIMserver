@@ -30,7 +30,6 @@ import java.time.Duration;
 
 import static de.openfabtwin.bimserver.checkingservice.model.Mappers.*;
 
-
 public class IdsMapper {
     static Logger LOGGER = LoggerFactory.getLogger(IdsMapper.class);
     private static final JAXBContext IDS_CTX = initCtx();
@@ -72,7 +71,6 @@ public class IdsMapper {
         }
         return ids;
     }
-
 
     private static IdsXml unmarshal(byte[] data, Schema schema) throws IOException {
         try (ByteArrayInputStream bais = new ByteArrayInputStream(data)){
@@ -178,25 +176,66 @@ public class IdsMapper {
     }
 
     private static byte[] fetchURL(String url) throws IOException, InterruptedException {
+        url = normalizeToDirectDownload(url);
         URI uri = URI.create(url);
+
         String path = uri.getPath();
-        idsFile = Paths.get(path).getFileName().toString();
+        idsFile = (path != null && !path.isBlank())
+                ? Paths.get(path).getFileName().toString()
+                : "unknown.ids";
 
         HttpClient client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
-                .followRedirects(HttpClient.Redirect.NORMAL)
+                .followRedirects(HttpClient.Redirect.ALWAYS)
                 .build();
+
         HttpRequest request = HttpRequest.newBuilder(uri)
-                .timeout(Duration.ofSeconds(20))
-                .GET().build();
+                .timeout(Duration.ofSeconds(30))
+                .header("Accept", "application/octet-stream, text/xml, application/xml, */*")
+                .GET()
+                .build();
 
         HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
         if (response.statusCode() != 200 || response.body() == null)
-            throw new RuntimeException("Failed to fetch IDS: HTTP " + response.statusCode());
+            throw new RuntimeException("Failed to fetch IDS: HTTP " + response.statusCode() + " from " + url);
+
+        String contentType = response.headers().firstValue("Content-Type").orElse("");
+        if (contentType.contains("text/html")) {
+            throw new RuntimeException(
+                    "URL returned an HTML page instead of an IDS file. " +
+                            "Make sure the URL is a direct download link: " + url);
+        }
+
+        response.headers().firstValue("Content-Disposition").ifPresent(cd -> {
+            for (String part : cd.split(";")) {
+                part = part.trim();
+                if (part.toLowerCase().startsWith("filename=")) {
+                    String resolved = part.substring("filename=".length())
+                            .replace("\"", "")
+                            .trim();
+                    if (!resolved.isBlank()) idsFile = resolved;
+                }
+            }
+        });
+
+        if (!idsFile.toLowerCase().endsWith(".ids")) {
+            throw new RuntimeException(
+                    "Downloaded file \"" + idsFile + "\" is not an .ids file. " +
+                            "Check that the URL points to a valid IDS file.");
+        }
+
+        LOGGER.info("Fetched IDS file: {} ({} bytes)", idsFile, response.body().length);
         return response.body();
     }
 
-
+    private static String normalizeToDirectDownload(String url) {
+        if (url.contains("github.com") && url.contains("/blob/")) {
+            return url.replace("github.com", "raw.githubusercontent.com")
+                    .replace("/blob/", "/");
+        }
+        return url;
+    }
 
 }
 
