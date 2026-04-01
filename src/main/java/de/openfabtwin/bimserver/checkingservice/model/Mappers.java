@@ -141,19 +141,21 @@ public class Mappers {
         if (v.restriction != null) {
             RestrictionValue.XsdBase base = RestrictionValue.xsdBaseFromString(v.restriction.base);
             List<String> enums = new ArrayList<>();
-            String pattern = null;
+            String pattern      = null;
             String minInclusive = null;
-            String maxInclusive= null;
-            String minExclusive= null;
-            String maxExclusive= null;
-            if (v.restriction.enumeration != null) for (IdsXml.EnumFacetXml e : v.restriction.enumeration) enums.add(e.value);
-            if (v.restriction.pattern != null) { pattern = v.restriction.pattern.value; }
-            if (v.restriction.minExclusive != null) {
-                minExclusive = v.restriction.minExclusive.value;
-                maxInclusive = v.restriction.maxInclusive.value;
-                minExclusive = v.restriction.minExclusive.value;
-                maxExclusive = v.restriction.maxExclusive.value;
-            }
+            String maxInclusive = null;
+            String minExclusive = null;
+            String maxExclusive = null;
+
+            if (v.restriction.enumeration != null)
+                for (IdsXml.EnumFacetXml e : v.restriction.enumeration) enums.add(e.value);
+
+            if (v.restriction.pattern      != null) pattern      = v.restriction.pattern.value;
+            if (v.restriction.minInclusive != null) minInclusive = v.restriction.minInclusive.value;
+            if (v.restriction.maxInclusive != null) maxInclusive = v.restriction.maxInclusive.value;
+            if (v.restriction.minExclusive != null) minExclusive = v.restriction.minExclusive.value;
+            if (v.restriction.maxExclusive != null) maxExclusive = v.restriction.maxExclusive.value;
+
             return new RestrictionValue(base, enums, pattern, minInclusive, maxInclusive, minExclusive, maxExclusive);
         }
         return null;
