@@ -7,7 +7,6 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @XmlRootElement(name = "ids")
 @XmlAccessorType(XmlAccessType.FIELD)

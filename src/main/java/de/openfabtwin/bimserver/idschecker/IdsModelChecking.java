@@ -10,8 +10,6 @@ import org.bimserver.models.store.*;
 import org.bimserver.plugins.SchemaName;
 import org.bimserver.plugins.services.AbstractAddExtendedDataService;
 import org.bimserver.plugins.services.BimServerClientInterface;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class IdsModelChecking extends AbstractAddExtendedDataService {
     public IdsModelChecking() {

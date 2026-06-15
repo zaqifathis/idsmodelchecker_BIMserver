@@ -1,6 +1,6 @@
-package de.openfabtwin.bimserver.checkingservice.model;
+package de.openfabtwin.bimserver.idschecker.model;
 
-import de.openfabtwin.bimserver.checkingservice.dto.IdsXml;
+import de.openfabtwin.bimserver.idschecker.dto.IdsXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
@@ -25,10 +25,11 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.time.Duration;
 
-import static de.openfabtwin.bimserver.checkingservice.model.Mappers.*;
+import static de.openfabtwin.bimserver.idschecker.model.Mappers.*;
 
 public class IdsMapper {
     static Logger LOGGER = LoggerFactory.getLogger(IdsMapper.class);
@@ -44,6 +45,7 @@ public class IdsMapper {
 
     public static Ids read(String url) throws Exception {
         byte[] bytes = fetchURL(url);
+        bytes = normalizeIfcVersion(bytes);
         Schema schema = getSchema();
         validate(bytes, schema);
         IdsXml dto = unmarshal(bytes, schema);
@@ -227,6 +229,12 @@ public class IdsMapper {
 
         LOGGER.info("Fetched IDS file: {} ({} bytes)", idsFile, response.body().length);
         return response.body();
+    }
+
+    private static byte[] normalizeIfcVersion(byte[] bytes) {
+        String xml = new String(bytes, StandardCharsets.UTF_8);
+        xml = xml.replaceAll("\\bIFC4X3\\b(?!_ADD2)", "IFC4X3_ADD2");
+        return xml.getBytes(StandardCharsets.UTF_8);
     }
 
     private static String normalizeToDirectDownload(String url) {

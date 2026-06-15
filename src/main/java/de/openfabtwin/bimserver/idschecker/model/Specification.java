@@ -1,8 +1,8 @@
-package de.openfabtwin.bimserver.checkingservice.model;
+package de.openfabtwin.bimserver.idschecker.model;
 
-import de.openfabtwin.bimserver.checkingservice.model.facet.Entity;
-import de.openfabtwin.bimserver.checkingservice.model.facet.Facet;
-import de.openfabtwin.bimserver.checkingservice.model.result.Result;
+import de.openfabtwin.bimserver.idschecker.model.facet.Entity;
+import de.openfabtwin.bimserver.idschecker.model.facet.Facet;
+import de.openfabtwin.bimserver.idschecker.model.result.Result;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 import org.bimserver.interfaces.objects.SProject;
@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-import static de.openfabtwin.bimserver.checkingservice.model.Specification.IfcVersion.*;
+import static de.openfabtwin.bimserver.idschecker.model.Specification.IfcVersion.*;
 
 public class Specification {
     Logger LOGGER = LoggerFactory.getLogger(Specification.class);
@@ -34,6 +34,7 @@ public class Specification {
     private boolean check_ifc_version(SProject project) {
         String projectSchema = project.getSchema().toUpperCase();
         if (projectSchema.equals("IFC2X3TC1")) projectSchema = "IFC2X3";
+        if (projectSchema.equals("IFC4X3_ADD2")) projectSchema = "IFC4X3";
         this.is_ifc_version_supported = ifcVersion.contains(ifcVersionFromString(projectSchema));
         return this.is_ifc_version_supported;
     }
@@ -128,14 +129,14 @@ public class Specification {
     public void setMinOccurs(String minOccurs) { this.minOccurs = minOccurs; }
     public void setMaxOccurs(String maxOccurs) { this.maxOccurs = maxOccurs; }
 
-    public enum IfcVersion {IFC2X3, IFC4, IFC4X3_ADD2 }
+    public enum IfcVersion {IFC2X3, IFC4, IFC4X3 }
 
     public static IfcVersion ifcVersionFromString(String s) {
         return switch (s.trim().toUpperCase()) {
             case "IFC2X3" -> IFC2X3;
             case "IFC4" -> IFC4;
-//            case "IFC4X3_ADD2" -> IFC4X3_ADD2;
-            default -> throw new IllegalArgumentException("Only accept IFC2X3TC1 and IFC4. IFC version: " + s);
+            case "IFC4X3", "IFC4X3_ADD2" -> IFC4X3;
+            default -> throw new IllegalArgumentException("Unsupported IFC version: " + s);
         };
     }
 
