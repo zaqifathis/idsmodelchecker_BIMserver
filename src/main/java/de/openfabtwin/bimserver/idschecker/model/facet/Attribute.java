@@ -1,8 +1,8 @@
-package de.openfabtwin.bimserver.checkingservice.model.facet;
+package de.openfabtwin.bimserver.idschecker.model.facet;
 
-import de.openfabtwin.bimserver.checkingservice.model.Value;
-import de.openfabtwin.bimserver.checkingservice.model.result.AttributeResult;
-import de.openfabtwin.bimserver.checkingservice.model.result.Result;
+import de.openfabtwin.bimserver.idschecker.model.Value;
+import de.openfabtwin.bimserver.idschecker.model.result.AttributeResult;
+import de.openfabtwin.bimserver.idschecker.model.result.Result;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 import org.eclipse.emf.ecore.*;

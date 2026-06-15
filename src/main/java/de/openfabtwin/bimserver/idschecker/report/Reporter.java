@@ -1,7 +1,7 @@
-package de.openfabtwin.bimserver.checkingservice.report;
+package de.openfabtwin.bimserver.idschecker.report;
 
 
-import de.openfabtwin.bimserver.checkingservice.model.Ids;
+import de.openfabtwin.bimserver.idschecker.model.Ids;
 
 public abstract class Reporter {
     protected final Ids ids;

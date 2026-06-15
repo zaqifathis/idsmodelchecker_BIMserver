@@ -1,4 +1,4 @@
-package de.openfabtwin.bimserver.checkingservice.model.result;
+package de.openfabtwin.bimserver.idschecker.model.result;
 
 import java.util.List;
 import java.util.Map;

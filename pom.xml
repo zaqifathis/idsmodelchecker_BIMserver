@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.openfabtwin</groupId>
     <artifactId>IdsModelPlugins</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>IdsModelCheckingService</name>
     <description>IDS Model Checker</description>
     <organization>
@@ -30,7 +30,7 @@
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <timestamp>${maven.build.timestamp}</timestamp>
-        <ids.generated.package>de.openfabtwin.bimserver.checkingservice.dto</ids.generated.package>
+        <ids.generated.package>de.openfabtwin.bimserver.idschecker.dto</ids.generated.package>
     </properties>
 
     <build>
@@ -64,7 +64,7 @@
 <!--                                <include>ids.xsd</include>-->
 <!--                            </schemaIncludes>-->
 <!--                            <schemaDirectory>${project.basedir}/src/main/resources/schema/</schemaDirectory>-->
-<!--                            <generatePackage>de.openfabtwin.bimserver.checkingservice.dto.generated</generatePackage>-->
+<!--                            <generatePackage>de.openfabtwin.bimserver.idschecker.dto.generated</generatePackage>-->
 <!--                            <catalog>${project.basedir}/src/main/resources/schema/catalog.xml</catalog>-->
 <!--                            <accessExternalSchema>file</accessExternalSchema>-->
 <!--                            <accessExternalDTD>file</accessExternalDTD>-->

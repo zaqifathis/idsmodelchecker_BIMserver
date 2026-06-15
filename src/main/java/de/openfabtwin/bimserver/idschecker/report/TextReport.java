@@ -1,14 +1,13 @@
-package de.openfabtwin.bimserver.checkingservice.report;
+package de.openfabtwin.bimserver.idschecker.report;
 
-import de.openfabtwin.bimserver.checkingservice.model.Ids;
-import de.openfabtwin.bimserver.checkingservice.model.Specification;
-import de.openfabtwin.bimserver.checkingservice.model.facet.Facet;
-import de.openfabtwin.bimserver.checkingservice.model.facet.FacetFailure;
+import de.openfabtwin.bimserver.idschecker.model.Ids;
+import de.openfabtwin.bimserver.idschecker.model.Specification;
+import de.openfabtwin.bimserver.idschecker.model.facet.Facet;
+import de.openfabtwin.bimserver.idschecker.model.facet.FacetFailure;
 import org.bimserver.emf.IdEObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 
 import java.util.List;
-import java.util.Map;
 
 public class TextReport extends Reporter {
 

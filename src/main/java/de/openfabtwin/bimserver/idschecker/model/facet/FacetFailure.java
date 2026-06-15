@@ -1,4 +1,4 @@
-package de.openfabtwin.bimserver.checkingservice.model.facet;
+package de.openfabtwin.bimserver.idschecker.model.facet;
 
 import org.bimserver.emf.IdEObject;
 

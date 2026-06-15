@@ -1,6 +1,6 @@
-package de.openfabtwin.bimserver.checkingservice.model.facet;
-import de.openfabtwin.bimserver.checkingservice.model.Specification;
-import de.openfabtwin.bimserver.checkingservice.model.result.Result;
+package de.openfabtwin.bimserver.idschecker.model.facet;
+import de.openfabtwin.bimserver.idschecker.model.Specification;
+import de.openfabtwin.bimserver.idschecker.model.result.Result;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 import org.slf4j.Logger;
@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-import static de.openfabtwin.bimserver.checkingservice.model.facet.Facet.Cardinality.*;
+import static de.openfabtwin.bimserver.idschecker.model.facet.Facet.Cardinality.*;
 
 public abstract class Facet {
     Logger LOGGER = LoggerFactory.getLogger(Facet.class);

@@ -1,12 +1,11 @@
-package de.openfabtwin.bimserver.checkingservice.model;
+package de.openfabtwin.bimserver.idschecker.model;
 
-import de.openfabtwin.bimserver.checkingservice.dto.IdsXml;
-import de.openfabtwin.bimserver.checkingservice.model.facet.*;
+import de.openfabtwin.bimserver.idschecker.dto.IdsXml;
+import de.openfabtwin.bimserver.idschecker.model.facet.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 public class Mappers {
 

@@ -1,9 +1,9 @@
-package de.openfabtwin.bimserver.checkingservice.model.facet;
+package de.openfabtwin.bimserver.idschecker.model.facet;
 
-import de.openfabtwin.bimserver.checkingservice.model.SimpleValue;
-import de.openfabtwin.bimserver.checkingservice.model.Value;
-import de.openfabtwin.bimserver.checkingservice.model.result.PropertyResult;
-import de.openfabtwin.bimserver.checkingservice.model.result.Result;
+import de.openfabtwin.bimserver.idschecker.model.SimpleValue;
+import de.openfabtwin.bimserver.idschecker.model.Value;
+import de.openfabtwin.bimserver.idschecker.model.result.PropertyResult;
+import de.openfabtwin.bimserver.idschecker.model.result.Result;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 import org.eclipse.emf.ecore.EClass;
@@ -11,12 +11,11 @@ import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EStructuralFeature;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static de.openfabtwin.bimserver.checkingservice.model.facet.Facet.Cardinality.*;
+import static de.openfabtwin.bimserver.idschecker.model.facet.Facet.Cardinality.*;
 import static org.apache.commons.lang3.math.NumberUtils.toDouble;
 
 public class Property extends Facet {

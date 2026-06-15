@@ -1,8 +1,5 @@
-package de.openfabtwin.bimserver.checkingservice.report;
-
-import de.openfabtwin.bimserver.checkingservice.model.Ids;
-import de.openfabtwin.bimserver.checkingservice.model.Specification;
-import org.bimserver.B
+package de.openfabtwin.bimserver.idschecker.report;
+import de.openfabtwin.bimserver.idschecker.model.Ids;
 
 public class BcfReport extends Reporter {
 

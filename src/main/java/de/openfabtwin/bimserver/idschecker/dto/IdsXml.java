@@ -1,6 +1,6 @@
-package de.openfabtwin.bimserver.checkingservice.dto;
+package de.openfabtwin.bimserver.idschecker.dto;
 
-import de.openfabtwin.bimserver.checkingservice.model.LocalDateAdapter;
+import de.openfabtwin.bimserver.idschecker.model.LocalDateAdapter;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;

@@ -1,15 +1,15 @@
-package de.openfabtwin.bimserver.checkingservice.model.facet;
+package de.openfabtwin.bimserver.idschecker.model.facet;
 
-import de.openfabtwin.bimserver.checkingservice.model.Value;
-import de.openfabtwin.bimserver.checkingservice.model.result.ClassificationResult;
-import de.openfabtwin.bimserver.checkingservice.model.result.Result;
+import de.openfabtwin.bimserver.idschecker.model.Value;
+import de.openfabtwin.bimserver.idschecker.model.result.ClassificationResult;
+import de.openfabtwin.bimserver.idschecker.model.result.Result;
 import org.bimserver.emf.IdEObject;
 import org.bimserver.emf.IfcModelInterface;
 import org.eclipse.emf.ecore.EClass;
 
 import java.util.*;
 
-import static de.openfabtwin.bimserver.checkingservice.model.facet.Facet.Cardinality.*;
+import static de.openfabtwin.bimserver.idschecker.model.facet.Facet.Cardinality.*;
 
 public class Classification extends Facet {
 

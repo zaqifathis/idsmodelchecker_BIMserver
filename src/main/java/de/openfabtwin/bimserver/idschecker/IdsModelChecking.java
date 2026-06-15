@@ -1,8 +1,8 @@
-package de.openfabtwin.bimserver.checkingservice;
+package de.openfabtwin.bimserver.idschecker;
 
-import de.openfabtwin.bimserver.checkingservice.model.Ids;
-import de.openfabtwin.bimserver.checkingservice.model.IdsMapper;
-import de.openfabtwin.bimserver.checkingservice.report.TextReport;
+import de.openfabtwin.bimserver.idschecker.model.Ids;
+import de.openfabtwin.bimserver.idschecker.model.IdsMapper;
+import de.openfabtwin.bimserver.idschecker.report.TextReport;
 import org.bimserver.emf.IfcModelInterface;
 import org.bimserver.interfaces.objects.SObjectType;
 import org.bimserver.interfaces.objects.SProject;
@@ -58,11 +58,5 @@ public class IdsModelChecking extends AbstractAddExtendedDataService {
 
         addExtendedData(report.getBytes(), "result.txt", "IDS Report", "text/plain", bimServerClientInterface, roid);
     }
-
-    @Override
-    public ProgressType getProgressType() {
-        return ProgressType.UNKNOWN;
-    }
-
 
 }

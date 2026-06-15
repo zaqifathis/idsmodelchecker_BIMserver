@@ -1,4 +1,4 @@
-package de.openfabtwin.bimserver.checkingservice.model;
+package de.openfabtwin.bimserver.idschecker.model;
 
 import org.bimserver.emf.IfcModelInterface;
 import org.bimserver.interfaces.objects.SProject;

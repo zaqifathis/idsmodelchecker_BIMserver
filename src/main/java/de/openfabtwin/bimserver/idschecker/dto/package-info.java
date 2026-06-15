@@ -3,5 +3,5 @@
         elementFormDefault = XmlNsForm.QUALIFIED,
         attributeFormDefault = XmlNsForm.UNQUALIFIED
 )
-package de.openfabtwin.bimserver.checkingservice.dto;
+package de.openfabtwin.bimserver.idschecker.dto;
 import javax.xml.bind.annotation.*;

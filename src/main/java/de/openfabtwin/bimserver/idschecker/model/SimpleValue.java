@@ -1,7 +1,6 @@
-package de.openfabtwin.bimserver.checkingservice.model;
+package de.openfabtwin.bimserver.idschecker.model;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 import java.util.regex.Pattern;
 
 public record SimpleValue(String value) implements Value {

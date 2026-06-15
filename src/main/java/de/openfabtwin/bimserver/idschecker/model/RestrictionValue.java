@@ -1,11 +1,11 @@
-package de.openfabtwin.bimserver.checkingservice.model;
+package de.openfabtwin.bimserver.idschecker.model;
 
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
 import java.math.BigDecimal;
 
-import static de.openfabtwin.bimserver.checkingservice.model.RestrictionValue.XsdBase.*;
+import static de.openfabtwin.bimserver.idschecker.model.RestrictionValue.XsdBase.*;
 
 public record RestrictionValue(XsdBase base, List<String> enums, String pattern, String minInclusive, String maxInclusive, String minExclusive, String maxExclusive) implements Value {
     public enum XsdBase { STRING, INTEGER, DOUBLE, BOOLEAN }
