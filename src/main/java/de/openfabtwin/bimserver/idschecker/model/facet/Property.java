@@ -142,12 +142,12 @@ public class Property extends Facet {
                     String propName = getString(propEntity, "Name");
                     if (propName == null || !collected.containsKey(propName)) continue;
 
-                    String actualType = actualDataTypeForProperty(propEntity);
-                    if (actualType == null) continue; // some predefined etc., skip type check
+                    List<String> actualTypes = actualDataTypesForProperty(propEntity);
+                    if (actualTypes.isEmpty()) continue; // some predefined etc., skip type check
 
-                    if (!dataType.equalsIgnoreCase(actualType)) {
+                    if (actualTypes.stream().noneMatch(a -> dataType.equalsIgnoreCase(a))) {
                         isPass = false;
-                        reason = Map.of("type", "DATATYPE", "actual", actualType, "dataType", dataType);
+                        reason = Map.of("type", "DATATYPE", "actual", actualTypes, "dataType", dataType);
                         break;
                     }
                 }
@@ -155,6 +155,14 @@ public class Property extends Facet {
 
             // --- 4) value checks (self.value) ---
             if (this.value != null) {
+                // Strict typing: an integer-typed requirement whose IDS value carries a decimal
+                // (e.g. "42.0" for IFCINTEGER) is not a valid integer literal and can never match.
+                if (isIntegerDataType(dataType) && this.value instanceof SimpleValue sv
+                        && !isIntegerLiteral(sv.extract())) {
+                    isPass = false;
+                    reason = Map.of("type", "VALUE", "actual", sv.extract());
+                    break;
+                }
                 for (Object actual : collected.values()) {
                     if (!compareActualAgainstFacetValue(actual, this.value)) {
                         isPass = false;
@@ -187,6 +195,14 @@ public class Property extends Facet {
     private Map<String, Map<String,Object>> getPropertySets(IfcModelInterface model, IdEObject element) {
         if (element == null) return new LinkedHashMap<>();
         Map<String, Map<String, Object>> results = new LinkedHashMap<>();
+
+        // (0) The element may itself be a type object (IfcTypeObject) carrying property sets directly.
+        List<IdEObject> ownPsets = (List<IdEObject>) getList(element, "HasPropertySets");
+        if (ownPsets != null) {
+            for (IdEObject pset : ownPsets) {
+                mergeExtract(results, extractPset(model, pset));
+            }
+        }
 
         // (1) From element TYPE (RelDefinesByType)
         List<IdEObject> typeRels = (List<IdEObject>) getList(element, "IsTypedBy");
@@ -365,13 +381,17 @@ public class Property extends Facet {
             List<Object> ded = (List<Object>) getList(prop,"DefinedValues");
             List<Object> out = new ArrayList<>();
             if (def != null && !def.isEmpty()) {
+                String measure = (def.get(0) instanceof IdEObject e) ? e.eClass().getName() : null;
                 List<Object> defFlat = unwrapList(def);
                 IdEObject du = getIdEObject(prop, "DefiningUnit");
+                if (du == null) du = unitFromProject(model, measure); // fall back to project unit
                 out.addAll(toSIList(defFlat, du));
             }
             if (ded != null && !ded.isEmpty()) {
+                String measure = (ded.get(0) instanceof IdEObject e) ? e.eClass().getName() : null;
                 List<Object> dedFlat = unwrapList(ded);
                 IdEObject du2 = getIdEObject(prop, "DefinedUnit");
+                if (du2 == null) du2 = unitFromProject(model, measure); // fall back to project unit
                 out.addAll(toSIList(dedFlat, du2));
             }
             return out;
@@ -591,6 +611,24 @@ public class Property extends Facet {
         return false;
     }
 
+    /** All value-type names a property exposes (a table property has both defining and defined types). */
+    private List<String> actualDataTypesForProperty(IdEObject propEntity) {
+        if ("IfcPropertyTableValue".equals(propEntity.eClass().getName())) {
+            List<String> out = new ArrayList<>();
+            addFirstType(out, getList(propEntity, "DefiningValues"));
+            addFirstType(out, getList(propEntity, "DefinedValues"));
+            return out;
+        }
+        String single = actualDataTypeForProperty(propEntity);
+        return single == null ? List.of() : List.of(single);
+    }
+
+    private void addFirstType(List<String> out, List<?> vals) {
+        if (vals != null && !vals.isEmpty() && vals.get(0) instanceof IdEObject e) {
+            out.add(e.eClass().getName());
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private String actualDataTypeForProperty(IdEObject propEntity) {
         String t = propEntity.eClass().getName();
@@ -627,9 +665,10 @@ public class Property extends Facet {
         }
 
         if ("IfcPropertyTableValue".equals(t)) {
-            List<Object> def = (List<Object>) getList(propEntity,"DefiningValues");
+            // The "result" values are the DefinedValues; prefer their type for the dataType check.
             List<Object> ded = (List<Object>) getList(propEntity,"DefinedValues");
-            Object v = (def != null && !def.isEmpty()) ? def.get(0) : (ded != null && !ded.isEmpty() ? ded.get(0) : null);
+            List<Object> def = (List<Object>) getList(propEntity,"DefiningValues");
+            Object v = (ded != null && !ded.isEmpty()) ? ded.get(0) : (def != null && !def.isEmpty() ? def.get(0) : null);
             if (v instanceof IdEObject e) return e.eClass().getName();
             return typeFromPrimitive(v);
         }
@@ -696,6 +735,19 @@ public class Property extends Facet {
 
     private boolean isNumeric(String s) {
         return s != null && s.matches("[-+]?\\d*\\.?\\d+");
+    }
+
+    /** IFC data types whose xs:base is xs:integer (per DataTypes.md). */
+    private static final Set<String> INTEGER_DATATYPES = Set.of(
+            "IFCINTEGER", "IFCCOUNTMEASURE", "IFCCARDINALPOINTREFERENCE", "IFCDIMENSIONCOUNT",
+            "IFCDAYINMONTHNUMBER", "IFCDAYINWEEKNUMBER", "IFCMONTHINYEARNUMBER", "IFCTIMESTAMP");
+
+    private boolean isIntegerDataType(String dt) {
+        return dt != null && INTEGER_DATATYPES.contains(dt.trim().toUpperCase());
+    }
+
+    private boolean isIntegerLiteral(String s) {
+        return s != null && s.trim().matches("[-+]?\\d+");
     }
 
     private static Double toDouble(Object o) {

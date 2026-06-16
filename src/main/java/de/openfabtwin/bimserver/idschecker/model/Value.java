@@ -10,7 +10,10 @@ sealed public interface Value permits SimpleValue, RestrictionValue {
 
     static BigDecimal parseBigDecimal(String s) {
         if (s == null) return null;
-        try { return new BigDecimal(s.trim()); }
+        s = s.trim();
+        // IFC/EXPRESS reals may be written with a trailing dot ("42."); BigDecimal rejects that.
+        if (s.endsWith(".")) s = s + "0";
+        try { return new BigDecimal(s); }
         catch (NumberFormatException ex) { return null; }
     }
 }

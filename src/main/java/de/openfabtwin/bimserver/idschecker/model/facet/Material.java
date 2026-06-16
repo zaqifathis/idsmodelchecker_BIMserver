@@ -77,7 +77,19 @@ public class Material extends Facet {
     }
 
     private IdEObject getMaterial(IdEObject element) {
-        List<?> rels = getList(element, "HasAssociations");
+        // Direct association on the occurrence...
+        IdEObject direct = materialFrom(element);
+        if (direct != null) return direct;
+        // ...otherwise inherit from the defining type (spec: occurrences inherit type materials).
+        for (IdEObject type : definingTypes(element)) {
+            IdEObject inherited = materialFrom(type);
+            if (inherited != null) return inherited;
+        }
+        return null;
+    }
+
+    private IdEObject materialFrom(IdEObject obj) {
+        List<?> rels = getList(obj, "HasAssociations");
         if (rels == null) return null;
 
         for (Object o : rels) {
@@ -90,6 +102,20 @@ public class Material extends Facet {
             return skipUsage(materialSelect);
         }
         return null;
+    }
+
+    private List<IdEObject> definingTypes(IdEObject element) {
+        List<IdEObject> types = new ArrayList<>();
+        List<?> rels = getList(element, "IsTypedBy");
+        if (rels != null) {
+            for (Object o : rels) {
+                if (!(o instanceof IdEObject rel)) continue;
+                if (!"IfcRelDefinesByType".equals(rel.eClass().getName())) continue;
+                IdEObject t = getIdEObject(rel, "RelatingType");
+                if (t != null) types.add(t);
+            }
+        }
+        return types;
     }
 
     private IdEObject skipUsage(IdEObject mat) {

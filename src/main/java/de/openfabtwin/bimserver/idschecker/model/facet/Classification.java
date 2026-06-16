@@ -58,13 +58,14 @@ public class Classification extends Facet {
         return results;
     }
 
+    /** One classification association: a system (IfcClassification name) and an optional value. */
+    private record Assoc(String system, String value) {}
+
     @Override
     public Result matches(IfcModelInterface model, IdEObject element) {
-       Set<IdEObject> leafRefs = getLeafClassificationReferences(element);
-       Set<IdEObject> refs = new LinkedHashSet<>(leafRefs);
-       for (IdEObject leaf : leafRefs) refs.addAll(getInheritedReferences(leaf));
+       List<Assoc> assocs = gather(element);
 
-       boolean isPass = !refs.isEmpty();
+       boolean isPass = !assocs.isEmpty();
        Map<String, Object> reason = new HashMap<>();
 
        // --- No classification at all ---
@@ -79,49 +80,28 @@ public class Classification extends Facet {
        if (isPass && this.value != null) {
             List<String> actualValues = new ArrayList<>();
             boolean anyMatch = false;
-
-            for (IdEObject r : refs) {
-                String id = getString(r, "Identification");
-                String ir = getString(r, "ItemReference");
-                String pick = (id != null) ? id : ir;
-                if (pick != null) {
-                    actualValues.add(pick);
-                    if (this.value.matches(pick)) {
-                        anyMatch = true;
-                    }
+            for (Assoc a : assocs) {
+                if (a.value() != null) {
+                    actualValues.add(a.value());
+                    if (this.value.matches(a.value())) anyMatch = true;
                 }
             }
-
             isPass = anyMatch;
-            if (!isPass) {
-                reason = Map.of(
-                        "type", "VALUE",
-                        "actual", actualValues
-                );
-            }
+            if (!isPass) reason = Map.of("type", "VALUE", "actual", actualValues);
        }
 
        // --- only check system when this.system is set ---
        if (isPass && this.system != null) {
            List<String> actualSystems = new ArrayList<>();
            boolean sysMatch = false;
-
-           for (IdEObject r : refs) {
-               IdEObject sys = getClassificationOfReference(r);
-               if (sys != null) {
-                   String sysName = getString(sys, "Name");
-                   if (sysName != null) actualSystems.add(sysName);
-                   if (system != null && system.matches(sysName)) sysMatch = true;
+           for (Assoc a : assocs) {
+               if (a.system() != null) {
+                   actualSystems.add(a.system());
+                   if (system.matches(a.system())) sysMatch = true;
                }
            }
-
            isPass = sysMatch;
-              if (!isPass) {
-                reason = Map.of(
-                          "type", "SYSTEM",
-                          "actual", actualSystems
-                );
-              }
+           if (!isPass) reason = Map.of("type", "SYSTEM", "actual", actualSystems);
        }
 
        // PROHIBITED returns !isPass, not always false ---
@@ -130,6 +110,90 @@ public class Classification extends Facet {
        }
 
        return new ClassificationResult(isPass, reason);
+    }
+
+    /**
+     * Gather classification associations for the element: its own (occurrence) associations plus
+     * those inherited from its defining type(s). Per the spec, an occurrence overrides the type's
+     * classification per <b>system</b>, so a type association is dropped if the occurrence already
+     * has an association in the same system.
+     */
+    private List<Assoc> gather(IdEObject element) {
+        List<Assoc> occ = associationsOf(element);
+        Set<String> occSystems = new HashSet<>();
+        for (Assoc a : occ) if (a.system() != null) occSystems.add(a.system());
+
+        List<Assoc> all = new ArrayList<>(occ);
+        for (IdEObject type : definingTypes(element)) {
+            for (Assoc a : associationsOf(type)) {
+                if (a.system() == null || !occSystems.contains(a.system())) all.add(a);
+            }
+        }
+        return all;
+    }
+
+    /** Associations directly on an object: rooted (HasAssociations) + non-rooted (HasExternalReferences). */
+    private List<Assoc> associationsOf(IdEObject obj) {
+        List<Assoc> out = new ArrayList<>();
+
+        List<?> rels = getList(obj, "HasAssociations");
+        if (rels != null) {
+            for (Object o : rels) {
+                if (!(o instanceof IdEObject rel)) continue;
+                if (!"IfcRelAssociatesClassification".equals(rel.eClass().getName())) continue;
+                addRelating(out, getIdEObject(rel, "RelatingClassification"));
+            }
+        }
+
+        // Non-rooted resources (IfcMaterial, IfcProfileDef, ...) carry classification via
+        // IfcExternalReferenceRelationship, exposed on the resource as the HasExternalReferences inverse.
+        List<?> exts = getList(obj, "HasExternalReferences");
+        if (exts != null) {
+            for (Object o : exts) {
+                if (!(o instanceof IdEObject rel)) continue;
+                if (!"IfcExternalReferenceRelationship".equals(rel.eClass().getName())) continue;
+                addRelating(out, getIdEObject(rel, "RelatingReference"));
+            }
+        }
+        return out;
+    }
+
+    private void addRelating(List<Assoc> out, IdEObject relating) {
+        if (relating == null) return;
+        String t = relating.eClass().getName();
+        if ("IfcClassificationReference".equals(t)) {
+            String system = systemNameOf(relating);
+            addRef(out, relating, system);
+            for (IdEObject parent : getInheritedReferences(relating)) addRef(out, parent, system);
+        } else if ("IfcClassification".equals(t)) {
+            // A classification associated directly (no reference) is a system with no value.
+            out.add(new Assoc(getString(relating, "Name"), null));
+        }
+    }
+
+    private void addRef(List<Assoc> out, IdEObject ref, String system) {
+        String id = getString(ref, "Identification");
+        String ir = getString(ref, "ItemReference");
+        out.add(new Assoc(system, id != null ? id : ir));
+    }
+
+    private String systemNameOf(IdEObject ref) {
+        IdEObject cls = getClassificationOfReference(ref);
+        return cls != null ? getString(cls, "Name") : null;
+    }
+
+    private List<IdEObject> definingTypes(IdEObject element) {
+        List<IdEObject> types = new ArrayList<>();
+        List<?> rels = getList(element, "IsTypedBy");
+        if (rels != null) {
+            for (Object o : rels) {
+                if (!(o instanceof IdEObject rel)) continue;
+                if (!"IfcRelDefinesByType".equals(rel.eClass().getName())) continue;
+                IdEObject t = getIdEObject(rel, "RelatingType");
+                if (t != null) types.add(t);
+            }
+        }
+        return types;
     }
 
     // Inherited references: follow ReferencedSource upward while it is also an IfcClassificationReference.
@@ -165,26 +229,4 @@ public class Classification extends Facet {
         return null;
     }
 
-    //Leaf references attached to the element via IfcRelAssociatesClassification.
-    @SuppressWarnings("unchecked")
-    private Set<IdEObject> getLeafClassificationReferences(IdEObject element) {
-        Set<IdEObject> results = new LinkedHashSet<>();
-        var hasAssocF = element.eClass().getEStructuralFeature("HasAssociations");
-        if (hasAssocF == null) return results;
-
-        List<IdEObject> rels = (List<IdEObject>) element.eGet(hasAssocF);
-        if (rels == null) return results;
-
-        for (IdEObject rel : rels) {
-            if (!"IfcRelAssociatesClassification".equals(rel.eClass().getName())) continue;
-            var rcF = rel.eClass().getEStructuralFeature("RelatingClassification");
-            if (rcF == null) continue;
-            Object rcObj = rel.eGet(rcF);
-            if (!(rcObj instanceof IdEObject rc)) continue;
-            if ("IfcClassificationReference".equals(rc.eClass().getName())) {
-                results.add(rc);
-            }
-        }
-        return results;
-    }
 }

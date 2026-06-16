@@ -92,8 +92,15 @@ public class TextReport extends Reporter {
     }
 
     private void getElementInfo(IdEObject element) {
-        String name = String.valueOf(element.eGet(element.eClass().getEStructuralFeature("Name")));
         String type = element.eClass().getName();
+        // Resource entities (e.g. IfcSurfaceStyleRefraction, IfcMaterialLayerSet) have no "Name"
+        // feature; guard against eGet(null) which would throw and abort the whole report.
+        String name = "-";
+        EStructuralFeature nameFeature = element.eClass().getEStructuralFeature("Name");
+        if (nameFeature != null) {
+            Object n = element.eGet(nameFeature);
+            if (n != null) name = n.toString();
+        }
         String guid = "-";
         EStructuralFeature guidFeature = element.eClass().getEStructuralFeature("GlobalId");
         if (guidFeature != null) {

@@ -1,5 +1,6 @@
 package de.openfabtwin.bimserver.idschecker.model.facet;
 
+import de.openfabtwin.bimserver.idschecker.model.SimpleValue;
 import de.openfabtwin.bimserver.idschecker.model.Value;
 import de.openfabtwin.bimserver.idschecker.model.result.AttributeResult;
 import de.openfabtwin.bimserver.idschecker.model.result.Result;
@@ -46,9 +47,7 @@ public class Attribute extends Facet {
             for (EStructuralFeature eAttr : ec.getEAllStructuralFeatures()) {
                 if (!name.matches(eAttr.getName())) continue;
 
-                if (eAttr instanceof EReference ref) { // keep only forward features
-                    if (ref.isDerived()) continue;
-                }
+                if (isUncheckable(eAttr, meta)) continue; // derived / inverse attributes cannot be checked
 
                 for (IdEObject inst : model.getAllWithSubTypes(ec)) {
                     Object raw = inst.eGet(eAttr);
@@ -66,13 +65,12 @@ public class Attribute extends Facet {
     public Result matches(IfcModelInterface model, IdEObject element) {
 
         List<EStructuralFeature> features = new ArrayList<>();
+        var meta = model.getPackageMetaData();
 
         for (EStructuralFeature f : element.eClass().getEAllStructuralFeatures()) {
             if (!name.matches(f.getName())) continue;
 
-            if (f instanceof EReference ref) { // keep only forward features
-                if (ref.isDerived()) continue;
-            }
+            if (isUncheckable(f, meta)) continue; // derived / inverse attributes cannot be checked
             features.add(f);
         }
 
@@ -84,74 +82,81 @@ public class Attribute extends Facet {
     }
 
     private Result evalProhibited(IdEObject element, List<EStructuralFeature> attributes) {
-        if(attributes.isEmpty()) {
-            return pass();
-        } else {
-            for (EStructuralFeature attr: attributes) {
-                Object raw = element.eGet(attr);
-                if(isPresent(raw, attr)) return fail("PROHIBITED");
+        // PROHIBITED name "-"   → the attribute must not be present at all.
+        // PROHIBITED name value → the attribute must not hold that value (null/absent is allowed).
+        for (EStructuralFeature attr : attributes) {
+            Object raw = element.eGet(attr);
+            if (!isPresent(raw, attr)) continue;
+            Object val = unwrap(raw);
+            if (this.value == null) {
+                return fail("PROHIBITED"); // presence itself is prohibited
             }
+            if (val instanceof IdEObject) continue; // entity ref has no scalar value to match
+            String s = matchString(val);
+            if (s != null && value.matches(s)) return fail("PROHIBITED");
         }
-        return fail("PROHIBITED");
+        return pass();
     }
 
     private Result evalOptional(IdEObject element, List<EStructuralFeature> attributes) {
-        if(attributes.isEmpty()) return pass();
+        // OPTIONAL: if a matching attribute is present it must satisfy the value. When the name is a
+        // restriction matching several attributes, ANY satisfying match passes ("match any result").
+        if (attributes.isEmpty()) return pass();
 
-        for (EStructuralFeature attr: attributes) {
+        boolean anyPresent = false;
+        Map<String, Object> lastReason = null;
+        for (EStructuralFeature attr : attributes) {
             Object raw = element.eGet(attr);
-            if(!isPresent(raw, attr)) continue;
+            if (!isPresent(raw, attr)) continue;
+            anyPresent = true;
 
-            if (!isActualValue(raw)) return fail(Map.of(
-                    "type", "FALSEY",
-                    "actual", raw.toString()
-            ));
+            Object val = unwrap(raw);
+            if (!isActualValue(val)) { lastReason = Map.of("type", "FALSEY", "actual", String.valueOf(val)); continue; }
 
-            if (raw instanceof IdEObject) {
-                if (this.value != null) {
-                    return fail(Map.of("type", "VALUE", "actual", raw.toString()));
-                }
+            if (val instanceof IdEObject) {
+                if (this.value == null) return pass();
+                lastReason = Map.of("type", "VALUE", "actual", String.valueOf(val));
                 continue;
             }
-
-            if (this.value != null && !value.matches(raw.toString().trim())) {
-                return fail(Map.of(
-                        "type", "VALUE",
-                        "actual", raw.toString()
-                ));
-            }
+            if (this.value == null) return pass();
+            // An integer-typed attribute cannot match an IDS value that is not an integer literal
+            // (e.g. "42.0" against an IfcInteger) — such a requirement can never be satisfied.
+            if (integerTypeMismatch(attr)) { lastReason = Map.of("type", "VALUE", "actual", String.valueOf(val)); continue; }
+            String s = matchString(val);
+            if (s != null && value.matches(s)) return pass();
+            lastReason = Map.of("type", "VALUE", "actual", String.valueOf(val));
         }
-        return pass();
+        if (!anyPresent) return pass();
+        return fail(lastReason != null ? lastReason : Map.of("type", "VALUE"));
     }
 
     private Result evalRequired(IdEObject element, List<EStructuralFeature> attributes) {
+        // REQUIRED: at least one matching attribute must be present and satisfy the value. When the
+        // name is a restriction matching several attributes, ANY satisfying match passes.
         if (attributes.isEmpty()) return fail("NOVALUE");
 
-        for(EStructuralFeature attr : attributes) {
+        Map<String, Object> lastReason = Map.of("type", "NOVALUE");
+        for (EStructuralFeature attr : attributes) {
             Object raw = element.eGet(attr);
+            if (!isPresent(raw, attr)) { lastReason = Map.of("type", "NOVALUE"); continue; }
 
-            if(!isPresent(raw, attr)) return fail("NOVALUE");
+            Object val = unwrap(raw);
+            if (!isActualValue(val)) { lastReason = Map.of("type", "FALSEY", "actual", String.valueOf(val)); continue; }
 
-            if (!isActualValue(raw)) return fail(Map.of(
-                    "type", "FALSEY",
-                    "actual", raw.toString()
-            ));
-
-            if (raw instanceof IdEObject) {
-                if (this.value != null) {
-                    return fail(Map.of("type", "VALUE", "actual", raw.toString()));
-                }
+            if (val instanceof IdEObject) {
+                if (this.value == null) return pass();
+                lastReason = Map.of("type", "VALUE", "actual", String.valueOf(val));
                 continue;
             }
-
-            if (this.value != null && !value.matches(raw.toString().trim())) {
-                return fail(Map.of(
-                        "type", "VALUE",
-                        "actual", raw.toString()
-                ));
-            }
+            if (this.value == null) return pass();
+            // An integer-typed attribute cannot match an IDS value that is not an integer literal
+            // (e.g. "42.0" against an IfcInteger) — such a requirement can never be satisfied.
+            if (integerTypeMismatch(attr)) { lastReason = Map.of("type", "VALUE", "actual", String.valueOf(val)); continue; }
+            String s = matchString(val);
+            if (s != null && value.matches(s)) return pass();
+            lastReason = Map.of("type", "VALUE", "actual", String.valueOf(val));
         }
-        return pass();
+        return fail(lastReason);
     }
 
     @SuppressWarnings("unchecked")
@@ -192,6 +197,28 @@ public class Attribute extends Facet {
         if (raw instanceof Collection<?> col) return !col.isEmpty();
         if (raw.getClass().isArray()) return Array.getLength(raw) > 0;
         return true;
+    }
+
+    /** Derived and inverse attributes cannot be checked. */
+    private static boolean isUncheckable(EStructuralFeature f, org.bimserver.emf.PackageMetaData meta) {
+        if (f.isDerived() || f.isTransient() || f.isVolatile()) return true;        // derived
+        return f instanceof EReference ref && meta != null && meta.isInverse(ref);  // inverse
+    }
+
+    private static boolean isIntegerTyped(EStructuralFeature attr) {
+        if (!(attr instanceof EAttribute)) return false;
+        EClassifier t = attr.getEType();
+        if (t == null) return false;
+        String cn = t.getInstanceClassName();
+        return "int".equals(cn) || "long".equals(cn) || "short".equals(cn)
+                || "java.lang.Integer".equals(cn) || "java.lang.Long".equals(cn)
+                || "java.lang.Short".equals(cn) || "java.math.BigInteger".equals(cn);
+    }
+
+    private boolean integerTypeMismatch(EStructuralFeature attr) {
+        return this.value instanceof SimpleValue sv
+                && isIntegerTyped(attr)
+                && !sv.extract().trim().matches("[-+]?\\d+");
     }
 
     private static AttributeResult pass() { return new AttributeResult(true, null); }

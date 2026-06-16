@@ -7,7 +7,8 @@ public record SimpleValue(String value) implements Value {
     public enum Type { BOOLEAN, INTEGER, DOUBLE, STRING }
 
     private static final Pattern INTEGER_PATTERN = Pattern.compile("[-+]?\\d+");
-    private static final Pattern DOUBLE_PATTERN = Pattern.compile("[-+]?\\d*\\.?\\d+(?:[eE][-+]?\\d+)?");
+    // Accept trailing-dot reals ("42.") and leading-dot reals (".5") in addition to the usual forms.
+    private static final Pattern DOUBLE_PATTERN = Pattern.compile("[-+]?(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][-+]?\\d+)?");
 
     public Type type() {
         if (value == null) return Type.STRING;

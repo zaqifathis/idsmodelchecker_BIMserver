@@ -46,16 +46,22 @@ import java.util.concurrent.TimeUnit;
 /**
  * Embedded-BIMserver lifecycle + helpers shared by the IDS facet integration tests.
  *
- * <p>Mirrors the proven pattern from bauinformatik/levelout
- * (AllTests.java + CheckingServiceTest.java), adapted for the IDS Model Checker plugin which
- * reads its IDS-file URL from a single global plugin configuration ("IdsFile" parameter).
+ * <p>Mirrors the proven pattern from bauinformatik/levelout (AllTests.java +
+ * CheckingServiceTest.java), adapted for the IDS Model Checker plugin which reads its IDS-file URL
+ * from a single global plugin configuration ("IdsFile" parameter).
+ *
+ * <p>Drives the official buildingSMART facet corpora
+ * ({@code Documentation/ImplementersDocumentation/TestCases/<facet>}). Each case is an
+ * {@code .ids}/{@code .ifc} pair sharing a base name. The corpus is downloaded once (proxy-aware),
+ * the IDS is served from a loopback HTTP server, and the IFC is checked in from a local temp file,
+ * so there is no GitHub traffic at check time.
  *
  * <p>The IDS Model Checker plugin is loaded from THIS project's own build output via
  * {@link LocalDevPluginLoader} (run {@code mvn -DskipTests package} first). To instead load the
  * installed artifact, point the loader at:
  *   C:\\Users\\ezahi597\\.m2\\repository\\org\\openfabtwin\\IdsModelPlugins\\1.0.1\\IdsModelPlugins-1.0.1.jar
  */
-public abstract class EntityFacetTestBase {
+public abstract class IdsFacetTestBase {
 
     protected static final int PORT = 7010;
     protected static final String SITE = "http://localhost:" + PORT;
@@ -68,10 +74,10 @@ public abstract class EntityFacetTestBase {
     /** When true also install ifcopenshellplugin; otherwise use the NOP render engine. */
     protected static final boolean ONLINE = Boolean.getBoolean("ids.test.online");
 
-    /** buildingSMART entity test corpus (raw download base). The only GitHub access, at startup/lazily. */
+    /** buildingSMART TestCases root (raw download base). The only GitHub access, at startup/lazily. */
     protected static final String RAW_BASE =
             "https://raw.githubusercontent.com/buildingSMART/IDS/refs/heads/development/"
-                    + "Documentation/ImplementersDocumentation/TestCases/entity/";
+                    + "Documentation/ImplementersDocumentation/TestCases/";
 
     private static final HttpClient HTTP = buildHttpClient();
 
@@ -117,7 +123,7 @@ public abstract class EntityFacetTestBase {
     protected static long internalServiceOid = -1;
     protected static long reportSchemaOid = -1;
 
-    /** Local temp dir holding downloaded .ids/.ifc files, served over a local HTTP server. */
+    /** Local temp dir holding downloaded {@code <facet>/<base>.ids|.ifc} files, served over a local HTTP server. */
     protected static Path corpusDir;
     /** Tiny loopback HTTP server so the plugin fetches IDS files locally (no check-time GitHub traffic). */
     protected static HttpServer localServer;
@@ -183,7 +189,7 @@ public abstract class EntityFacetTestBase {
 
     /** Serve the downloaded corpus over loopback so the IDS plugin never touches GitHub at check time. */
     private static void startLocalCorpusServer() throws Exception {
-        corpusDir = Files.createTempDirectory("ids-entity-corpus-");
+        corpusDir = Files.createTempDirectory("ids-corpus-");
         localServer = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         localServer.createContext("/", exchange -> {
             String name = exchange.getRequestURI().getPath().replaceFirst("^/+", "");
@@ -211,15 +217,33 @@ public abstract class EntityFacetTestBase {
         if (bimServer != null) {
             bimServer.stop();
         }
-        if (corpusDir != null && Files.exists(corpusDir)) {
-            FileUtils.deleteDirectory(corpusDir.toFile());
+        // Best-effort cleanup: BIMserver may not release the BerkeleyDB file handle immediately, so
+        // deleting the home dir can race. Never let cleanup fail the build.
+        deleteQuietly(corpusDir);
+        deleteQuietly(homePath);
+        deleteQuietly(webResourceBase);
+    }
+
+    private static void deleteQuietly(Path dir) {
+        if (dir == null) {
+            return;
         }
-        if (homePath != null && Files.exists(homePath)) {
-            FileUtils.deleteDirectory(homePath.toFile());
+        for (int attempt = 0; attempt < 3; attempt++) {
+            try {
+                if (Files.exists(dir)) {
+                    FileUtils.deleteDirectory(dir.toFile());
+                }
+                return;
+            } catch (Exception e) {
+                try {
+                    Thread.sleep(500); // let lingering file handles (BerkeleyDB) release
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
         }
-        if (webResourceBase != null && Files.exists(webResourceBase)) {
-            FileUtils.deleteDirectory(webResourceBase.toFile());
-        }
+        // Give up silently; leftover temp dirs under tmptestdata are harmless.
     }
 
     private static long locateIdsInternalService(ServiceMap services) throws Exception {
@@ -237,18 +261,21 @@ public abstract class EntityFacetTestBase {
     }
 
     /**
-     * Run one entity test case end-to-end and return the plugin's report text.
+     * Run one facet test case end-to-end and return the plugin's report text.
      *
-     * <p>The {@code .ids} and {@code .ifc} are downloaded once into the local corpus dir (with
-     * retry), the IDS is served to the plugin from the loopback HTTP server, and the IFC is
-     * checked in from the local file. No GitHub traffic at check time.
+     * <p>The {@code <facet>/<base>.ids} and {@code .ifc} are downloaded once into the local corpus
+     * dir (with retry), the IDS is served to the plugin from the loopback HTTP server, and the IFC
+     * is checked in from the local file. No GitHub traffic at check time.
      *
+     * @param facet    facet directory, e.g. {@code entity}, {@code attribute}
      * @param baseName case base name, e.g. {@code pass-a_matching_entity_should_pass}
      */
-    protected String runCase(String baseName) throws Exception {
-        Path idsFile = ensureDownloaded(baseName + ".ids");
-        Path ifcFile = ensureDownloaded(baseName + ".ifc");
-        String idsLocalUrl = "http://127.0.0.1:" + localPort + "/" + idsFile.getFileName();
+    protected String runCase(String facet, String baseName) throws Exception {
+        String idsRel = facet + "/" + baseName + ".ids";
+        String ifcRel = facet + "/" + baseName + ".ifc";
+        Path idsFile = ensureDownloaded(idsRel);
+        Path ifcFile = ensureDownloaded(ifcRel);
+        String idsLocalUrl = "http://127.0.0.1:" + localPort + "/" + idsRel;
 
         ServiceMap services = bimServer.getServiceFactory().get(adminToken, AccessMethod.INTERNAL);
 
@@ -270,7 +297,7 @@ public abstract class EntityFacetTestBase {
         SDeserializerPluginConfiguration deserializer =
                 services.getServiceInterface().getSuggestedDeserializerForExtension("ifc", project.getOid());
         DataHandler ifcData = new DataHandler(new FileDataSource(ifcFile.toFile()));
-        String ifcName = ifcFile.getFileName().toString();
+        String ifcName = baseName + ".ifc";
         long length = Files.size(ifcFile);
         SLongCheckinActionState checkin = services.getServiceInterface().checkinSync(
                 project.getOid(), "checkin", deserializer.getOid(), length, ifcName, ifcData, false);
@@ -330,13 +357,14 @@ public abstract class EntityFacetTestBase {
         throw new IllegalStateException("No IDS report produced for revision " + roid);
     }
 
-    /** Download a corpus file from GitHub once (idempotent), with retry + backoff. */
-    private static synchronized Path ensureDownloaded(String fileName) throws Exception {
-        Path target = corpusDir.resolve(fileName);
+    /** Download a corpus file from GitHub once (idempotent), with retry + backoff. {@code relPath} = {@code <facet>/<name>}. */
+    private static synchronized Path ensureDownloaded(String relPath) throws Exception {
+        Path target = corpusDir.resolve(relPath);
         if (Files.exists(target) && Files.size(target) > 0) {
             return target;
         }
-        HttpRequest request = HttpRequest.newBuilder(URI.create(RAW_BASE + fileName))
+        Files.createDirectories(target.getParent());
+        HttpRequest request = HttpRequest.newBuilder(URI.create(RAW_BASE + relPath))
                 .timeout(Duration.ofSeconds(30))
                 .header("Accept", "application/octet-stream, */*")
                 .GET().build();
@@ -348,13 +376,13 @@ public abstract class EntityFacetTestBase {
                     Files.write(target, resp.body());
                     return target;
                 }
-                last = new IllegalStateException("HTTP " + resp.statusCode() + " for " + fileName);
+                last = new IllegalStateException("HTTP " + resp.statusCode() + " for " + relPath);
             } catch (Exception e) {
                 last = e;
             }
             Thread.sleep(1000L * attempt); // 1s, 2s, 3s backoff
         }
-        throw new IllegalStateException("Failed to download " + fileName + " after retries", last);
+        throw new IllegalStateException("Failed to download " + relPath + " after retries", last);
     }
 
     private static void setStringParameter(SObjectType settings, String identifier, String value) {
