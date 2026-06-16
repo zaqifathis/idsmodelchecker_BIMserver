@@ -111,11 +111,17 @@ public class Entity extends Facet {
                 IdEObject type = getIdEObject(rel, "RelatingType");
                 if (type == null) continue;
 
+                // A defining type object normally drives the predefined type, BUT an occurrence may
+                // override it: if the type's PredefinedType is USERDEFINED/NOTDEFINED/absent and does
+                // not match, fall back to the occurrence instance (see buildingSMART test
+                // "overridden_predefined_types_should_pass").
                 String pt = getString(type, "PredefinedType");
                 if (eq(pt, "USERDEFINED")){
-                    String val = getString(type, "ElementType");
+                    // IDS may require the literal "USERDEFINED" enum, or the user-defined type name.
+                    if (predefinedType.matches("USERDEFINED")) { actualOut[0] = "USERDEFINED"; return true; }
+                    String val = userDefinedValue(type);
                     actualOut[0] = val != null ? val : "";
-                    if(predefinedType.matches(val)) return true;
+                    if (predefinedType.matches(val)) return true;
                 } else if (predefinedType.matches(pt)) {
                     actualOut[0] = pt != null ? pt : "";
                     return true;
@@ -136,12 +142,26 @@ public class Entity extends Facet {
     private boolean objType (IdEObject obj, String[] actualOut) {
         String pdef = getString(obj,"PredefinedType");
         if (eq(pdef, "USERDEFINED")) {
-            String val = getString(obj,"ObjectType");
+            // IDS may require the literal "USERDEFINED" enum, or the user-defined type name.
+            if (predefinedType.matches("USERDEFINED")) { actualOut[0] = "USERDEFINED"; return true; }
+            String val = userDefinedValue(obj);
             actualOut[0] = val != null ? val : "";
             return predefinedType.matches(val);
         } //6th check
         actualOut[0] = pdef != null ? pdef : "";
         return predefinedType.matches(pdef);
+    }
+
+    /**
+     * For PredefinedType=USERDEFINED, the actual user value lives in a different attribute depending
+     * on the entity kind: occurrences (IfcObject) use {@code ObjectType}, element types
+     * (IfcElementType) use {@code ElementType}, and process/type objects use {@code ProcessType}.
+     */
+    private String userDefinedValue(IdEObject obj) {
+        String val = getString(obj, "ObjectType");
+        if (val == null) val = getString(obj, "ElementType");
+        if (val == null) val = getString(obj, "ProcessType");
+        return val;
     }
 
     @SuppressWarnings("unchecked")

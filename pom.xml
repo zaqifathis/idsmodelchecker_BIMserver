@@ -31,6 +31,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <timestamp>${maven.build.timestamp}</timestamp>
         <ids.generated.package>de.openfabtwin.bimserver.idschecker.dto</ids.generated.package>
+        <!-- when true, install ifcopenshellplugin; when false, use NOP render engine -->
+        <ids.test.online>false</ids.test.online>
     </properties>
 
     <build>
@@ -50,6 +52,22 @@
                 </includes>
             </resource>
         </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <forkCount>1</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <!-- embedded BIMserver binds a fixed port; never run server tests in parallel -->
+                    <systemPropertyVariables>
+                        <ids.test.online>${ids.test.online}</ids.test.online>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
 
 <!--        <plugins>-->
 <!--            <plugin>-->
@@ -118,6 +136,26 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>2.0.17</version>
+        </dependency>
+
+        <!-- Test scope: embedded BIMserver (bimserverjar = core + EmbeddedWebServer + jetty + logback) -->
+        <dependency>
+            <groupId>org.opensourcebim</groupId>
+            <artifactId>bimserverjar</artifactId>
+            <version>1.6.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.16.1</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
